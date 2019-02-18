@@ -11,23 +11,26 @@
 #include <vector>
 #include <string>
 #include <include/logging.h>
+#include <include/android_build.h>
 #include "config_manager.h"
-
-#define BLACK_LIST_PATH "/data/misc/riru/modules/edxposed/blacklist/"
-#define WHITE_LIST_PATH "/data/misc/riru/modules/edxposed/whitelist/"
-#define USE_WHITE_LIST "/data/misc/riru/modules/edxposed/usewhitelist"
-#define GLOBAL_MODE "/data/misc/riru/modules/edxposed/forceglobal"
-#define DYNAMIC_MODULES "/data/misc/riru/modules/edxposed/dynamicmodules"
 
 static char package_name[256];
 static bool global_mode = false;
 static bool dynamic_modules = false;
 static bool inited = false;
+static bool use_prot_storage = GetAndroidApiLevel() >= ANDROID_N;
+static std::string config_path = use_prot_storage ? "/data/user_de/0/org.meowcat.edxposed.manager/conf/"
+        : "/data/user/0/org.meowcat.edxposed.manager/conf/";
+static std::string blacklist_path = config_path + "blacklist/";
+static std::string whitelist_path = config_path + "whitelist/";
+static std::string use_whitelist_path = config_path + "usewhitelist";
+static std::string forceglobal_path = config_path + "forceglobal";
+static std::string dynamicmodules_path = config_path + "dynamicmodules";
 
 void initOnce() {
     if (!inited) {
-        global_mode = access(GLOBAL_MODE, F_OK) == 0;
-        dynamic_modules = access(DYNAMIC_MODULES, F_OK) == 0;
+        global_mode = access(forceglobal_path.c_str(), F_OK) == 0;
+        dynamic_modules = access(dynamicmodules_path.c_str(), F_OK) == 0;
         inited = true;
     }
 }
@@ -51,22 +54,22 @@ int is_app_need_hook(JNIEnv *env, jstring appDataDir) {
         }
     }
     env->ReleaseStringUTFChars(appDataDir, app_data_dir);
-    if (strcmp(package_name, "com.solohsu.android.edxp.manager") == 0) {
+    if (strcmp(package_name, "org.meowcat.edxposed.manager") == 0) {
         // always hook installer app
         return 1;
     }
-    bool use_white_list = access(USE_WHITE_LIST, F_OK) == 0;
-    bool white_list_exists = access(WHITE_LIST_PATH, F_OK) == 0;
-    bool black_list_exists = access(BLACK_LIST_PATH, F_OK) == 0;
+    bool use_white_list = access(use_whitelist_path.c_str(), F_OK) == 0;
+    bool white_list_exists = access(whitelist_path.c_str(), F_OK) == 0;
+    bool black_list_exists = access(blacklist_path.c_str(), F_OK) == 0;
     if (use_white_list && white_list_exists) {
         char path[PATH_MAX];
-        snprintf(path, PATH_MAX, WHITE_LIST_PATH "%s", package_name);
+        snprintf(path, PATH_MAX,  "%s%s", whitelist_path.c_str(), package_name);
         int res = access(path, F_OK) == 0;
         LOGD("use whitelist, res=%d", res);
         return res;
     } else if (!use_white_list && black_list_exists) {
         char path[PATH_MAX];
-        snprintf(path, PATH_MAX, BLACK_LIST_PATH "%s", package_name);
+        snprintf(path, PATH_MAX, "%s%s", blacklist_path.c_str(), package_name);
         int res = access(path, F_OK) != 0;
         LOGD("use blacklist, res=%d", res);
         return res;
