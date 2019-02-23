@@ -44,26 +44,26 @@ build=`getprop ro.build.id`
 nolog="false"
 if [ ${android_sdk} -ge 24 ]
 then
-  if [ -d "/data/user_de/0/com.solohsu.android.edxp.manager/log" ];
+  if [ -d "/data/user_de/0/com.solohsu.android.edxp.manager" ];
   then
     path=/data/user_de/0/com.solohsu.android.edxp.manager/log
-  else if [ -d "/data/user_de/0/org.meowcat.edxposed.manager/log" ];
+  else if [ -d "/data/user_de/0/org.meowcat.edxposed.manager" ];
   then
     path=/data/user_de/0/org.meowcat.edxposed.manager/log
-  else if [ -d "/data/user_de/0/de.robv.android.xposed.installer/log" ];
+  else if [ -d "/data/user_de/0/de.robv.android.xposed.installer" ];
   then
     path=/data/user_de/0/de.robv.android.xposed.installer/log
   else
     nolog="true"
   fi
 else
-  if [ -d "/data/data/com.solohsu.android.edxp.manager/log" ];
+  if [ -d "/data/data/com.solohsu.android.edxp.manager" ];
   then
     path=/data/data/com.solohsu.android.edxp.manager/log
-  else if [ -d "/data/data/org.meowcat.edxposed.manager/log" ];
+  else if [ -d "/data/data/org.meowcat.edxposed.manager" ];
   then
     path=/data/data/0/org.meowcat.edxposed.manager/log
-  else if [ -d "/data/data/de.robv.android.xposed.installer/log" ];
+  else if [ -d "/data/data/de.robv.android.xposed.installer" ];
   then
     path=/data/data/de.robv.android.xposed.installer/log
   else
@@ -72,12 +72,12 @@ else
 fi
 if [ "${nolog}" = "false" ];
 then
+  mkdir -p ${path}
   chmod 777 ${path}
   # all level log
   file=${path}/all.log
   num=$(($RANDOM+100000000))
   rand=$(($num%7))
-  mkdir -p ${path}
   rm -rf ${file}
   touch ${file}
   echo "--------- beginning of head">>${file}
@@ -103,7 +103,6 @@ then
   file_err=${path}/error.log
   num_err=$(($RANDOM+100000000))
   rand_err=$(($num_err%7))
-  mkdir -p ${path_err}
   rm -rf ${file_err}
   touch ${file_err}
   echo "--------- beginning of head">>${file_err}
