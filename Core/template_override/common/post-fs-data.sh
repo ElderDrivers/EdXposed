@@ -32,15 +32,6 @@ msg[5]="Mitsuha. Mitsuha. Mitsuha, your name is Mitsuha..."
 msg[6]="Someone dear to me. I don't want to forget. I shouldn't forget!"
 time=$(date +%Y-%m-%d-%H-%M-%S)
 android_sdk=`getprop ro.build.version.sdk`
-if [ ${android_sdk} -ge 24 ]
-then
-  path=/data/user_de/0/com.solohsu.android.edxp.manager/log
-else
-  path=/data/data/com.solohsu.android.edxp.manager/log
-fi
-file=$path/error.log
-num=$(($RANDOM+100000000))
-rand=$(($num%7))
 build_desc=`getprop ro.build.description`
 product=`getprop ro.build.product`
 manufacturer=`getprop ro.product.manufacturer`
@@ -50,24 +41,88 @@ arch=`getprop ro.product.cpu.abi`
 device=`getprop ro.product.device`
 android=`getprop ro.build.version.release`
 build=`getprop ro.build.id`
-mkdir -p $path
-rm -rf $file
-touch $file
-echo "--------- beginning of head">>$file
-echo "EdXposed Log">>$file
-echo "Powered by Log Catcher">>$file
-echo "QQ chat group 855219808">>$file
-echo ${msg[$rand]}>>$file
-echo "--------- beginning of system info">>$file
-echo "Android version: ${android}">>$file
-echo "Android sdk: ${android_sdk}">>$file
-echo "Android build: ${build}">>$file
-echo "Fingerprint: ${fingerprint}">>$file
-echo "ROM build description: ${build_desc}">>$file
-echo "EdXposed Version: ${edxp_ver}">>$file
-echo "Architecture: ${arch}">>$file
-echo "Device: ${device}">>$file
-echo "Manufacturer: ${manufacturer}">>$file
-echo "Brand: ${brand}">>$file
-echo "Product: ${product}">>$file
-logcat *:V logcatcher-xposed-mlgmxyysd:S|grep -i "xposed">>$file &
+nolog="false"
+if [ ${android_sdk} -ge 24 ]
+then
+  if [ -d "/data/user_de/0/com.solohsu.android.edxp.manager/log" ];
+  then
+    path=/data/user_de/0/com.solohsu.android.edxp.manager/log
+  else if [ -d "/data/user_de/0/org.meowcat.edxposed.manager/log" ];
+  then
+    path=/data/user_de/0/org.meowcat.edxposed.manager/log
+  else if [ -d "/data/user_de/0/de.robv.android.xposed.installer/log" ];
+  then
+    path=/data/user_de/0/de.robv.android.xposed.installer/log
+  else
+    nolog="true"
+  fi
+else
+  if [ -d "/data/data/com.solohsu.android.edxp.manager/log" ];
+  then
+    path=/data/data/com.solohsu.android.edxp.manager/log
+  else if [ -d "/data/data/org.meowcat.edxposed.manager/log" ];
+  then
+    path=/data/data/0/org.meowcat.edxposed.manager/log
+  else if [ -d "/data/data/de.robv.android.xposed.installer/log" ];
+  then
+    path=/data/data/de.robv.android.xposed.installer/log
+  else
+    nolog="true"
+  fi
+fi
+if [ "${nolog}" = "false" ];
+then
+  chmod 777 ${path}
+  # all level log
+  file=${path}/all.log
+  num=$(($RANDOM+100000000))
+  rand=$(($num%7))
+  mkdir -p ${path}
+  rm -rf ${file}
+  touch ${file}
+  echo "--------- beginning of head">>${file}
+  echo "EdXposed Log">>${file}
+  echo "Powered by Log Catcher">>${file}
+  echo "QQ chat group 855219808">>${file}
+  echo ${msg[$rand]}>>${file
+  echo "--------- beginning of system info">>${file}
+  echo "Android version: ${android}">>${file}
+  echo "Android sdk: ${android_sdk}">>${file}
+  echo "Android build: ${build}">>${file}
+  echo "Fingerprint: ${fingerprint}">>${file}
+  echo "ROM build description: ${build_desc}">>${file}
+  echo "EdXposed Version: ${edxp_ver}">>${file}
+  echo "Architecture: ${arch}">>${file}
+  echo "Device: ${device}">>${file}
+  echo "Manufacturer: ${manufacturer}">>${file}
+  echo "Brand: ${brand}">>${file}
+  echo "Product: ${product}">>${file}
+  echo "--------- beginning of Xposed">>${file}
+  logcat *:V logcatcher-xposed-mlgmxyysd:S|grep -i "xposed">>${file} &
+  # Warn+ log
+  file_err=${path}/error.log
+  num_err=$(($RANDOM+100000000))
+  rand_err=$(($num_err%7))
+  mkdir -p ${path_err}
+  rm -rf ${file_err}
+  touch ${file_err}
+  echo "--------- beginning of head">>${file_err}
+  echo "EdXposed Log">>${file_err}
+  echo "Powered by Log Catcher">>${file_err}
+  echo "QQ chat group 855219808">>${file_err}
+  echo ${msg[$rand]}>>${file_err}
+  echo "--------- beginning of system info">>${file_err}
+  echo "Android version: ${android}">>${file_err}
+  echo "Android sdk: ${android_sdk}">>${file_err}
+  echo "Android build: ${build}">>${file_err}
+  echo "Fingerprint: ${fingerprint}">>${file_err}
+  echo "ROM build description: ${build_desc}">>${file_err}
+  echo "EdXposed Version: ${edxp_ver}">>${file_err}
+  echo "Architecture: ${arch}">>${file_err}
+  echo "Device: ${device}">>${file_err}
+  echo "Manufacturer: ${manufacturer}">>${file_err}
+  echo "Brand: ${brand}">>${file_err}
+  echo "Product: ${product}">>${file_err}
+  echo "--------- beginning of Xposed">>${file_err}
+  logcat *:W logcatcher-xposed-error-mlgmxyysd:S|grep -i "xposed">>${file_err} &
+fi
