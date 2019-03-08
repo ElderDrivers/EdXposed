@@ -483,7 +483,7 @@ public final class DexMaker {
     }
 
     public ClassLoader generateAndLoad(ClassLoader parent, File dexCache) throws IOException {
-        return generateAndLoad(parent, dexCache, generateFileName());
+        return generateAndLoad(parent, dexCache, generateFileName(), false);
     }
 
     /**
@@ -512,7 +512,7 @@ public final class DexMaker {
      *     dex files will be written. If null, this class will try to guess the
      *     application's private data dir.
      */
-    public ClassLoader generateAndLoad(ClassLoader parent, File dexCache, String dexFileName) throws IOException {
+    public ClassLoader generateAndLoad(ClassLoader parent, File dexCache, String dexFileName, boolean deleteOld) throws IOException {
         if (dexCache == null) {
             String property = System.getProperty("dexmaker.dexcache");
             if (property != null) {
@@ -529,9 +529,14 @@ public final class DexMaker {
         File result = new File(dexCache, dexFileName);
 
         if (result.exists()) {
-            try {
-                deleteOldDex(result);
-            } catch (Throwable throwable) {}
+            if (deleteOld) {
+                try {
+                    deleteOldDex(result);
+                } catch (Throwable throwable) {
+                }
+            } else {
+                return generateClassLoader(result, dexCache, parent);
+            }
         }
 
         byte[] dex = generate();

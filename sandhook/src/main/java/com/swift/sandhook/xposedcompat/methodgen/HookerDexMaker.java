@@ -218,7 +218,7 @@ public class HookerDexMaker implements HookMaker {
             throw new IllegalArgumentException("dexDirPath should not be empty!!!");
         }
         // Create the dex file and load it.
-        loader = mDexMaker.generateAndLoad(mAppClassLoader, new File(mDexDirPath), dexName);
+        loader = mDexMaker.generateAndLoad(mAppClassLoader, new File(mDexDirPath), dexName, true);
         return loadHookerClass(loader, className);
     }
 

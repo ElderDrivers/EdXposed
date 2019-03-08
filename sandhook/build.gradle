@@ -26,7 +26,6 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.jakewharton.android.repackaged:dalvik-dx:9.0.0_r3'
     implementation 'com.swift.sandhook:hooklib:3.0.1'
     compileOnly project(':dexmaker')
     compileOnly project(':xposedapi')
