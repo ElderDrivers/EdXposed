@@ -230,7 +230,7 @@ public final class DexMaker {
      *     Modifier#FINAL} and {@link Modifier#ABSTRACT}.
      */
     public void declare(TypeId<?> type, String sourceFile, int flags,
-            TypeId<?> supertype, TypeId<?>... interfaces) {
+                        TypeId<?> supertype, TypeId<?>... interfaces) {
         TypeDeclaration declaration = getTypeDeclaration(type);
         int supportedFlags = Modifier.PUBLIC | Modifier.FINAL | Modifier.ABSTRACT
                 | AccessFlags.ACC_SYNTHETIC;
@@ -471,6 +471,21 @@ public final class DexMaker {
         }
     }
 
+    public ClassLoader loadClassDirect(ClassLoader parent, File dexCache, String dexFileName) {
+        File result = new File(dexCache, dexFileName);
+        // Check that the file exists. If it does, return a DexClassLoader and skip all
+        // the dex bytecode generation.
+        if (result.exists()) {
+            return generateClassLoader(result, dexCache, parent);
+        } else {
+            return null;
+        }
+    }
+
+    public ClassLoader generateAndLoad(ClassLoader parent, File dexCache) throws IOException {
+        return generateAndLoad(parent, dexCache, generateFileName());
+    }
+
     /**
      * Generates a dex file and loads its types into the current process.
      *
@@ -497,7 +512,7 @@ public final class DexMaker {
      *     dex files will be written. If null, this class will try to guess the
      *     application's private data dir.
      */
-    public ClassLoader generateAndLoad(ClassLoader parent, File dexCache) throws IOException {
+    public ClassLoader generateAndLoad(ClassLoader parent, File dexCache, String dexFileName) throws IOException {
         if (dexCache == null) {
             String property = System.getProperty("dexmaker.dexcache");
             if (property != null) {
@@ -511,11 +526,12 @@ public final class DexMaker {
             }
         }
 
-        File result = new File(dexCache, generateFileName());
-        // Check that the file exists. If it does, return a DexClassLoader and skip all
-        // the dex bytecode generation.
+        File result = new File(dexCache, dexFileName);
+
         if (result.exists()) {
-            return generateClassLoader(result, dexCache, parent);
+            try {
+                deleteOldDex(result);
+            } catch (Throwable throwable) {}
         }
 
         byte[] dex = generate();
@@ -527,6 +543,12 @@ public final class DexMaker {
          *
          * TODO: load the dex from memory where supported.
          */
+
+        File parentDir = result.getParentFile();
+        if (!parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+
         result.createNewFile();
         JarOutputStream jarOut = new JarOutputStream(new FileOutputStream(result));
         JarEntry entry = new JarEntry(DexFormat.DEX_IN_JAR_NAME);
@@ -536,6 +558,32 @@ public final class DexMaker {
         jarOut.closeEntry();
         jarOut.close();
         return generateClassLoader(result, dexCache, parent);
+    }
+
+    public void deleteOldDex(File dexFile) {
+        dexFile.delete();
+        String dexDir = dexFile.getParent();
+        File oatDir = new File(dexDir, "/oat/");
+        File oatDirArm = new File(oatDir, "/arm/");
+        File oatDirArm64 = new File(oatDir, "/arm64/");
+        if (!oatDir.exists())
+            return;
+        String nameStart = dexFile.getName().replaceAll(".jar", "");
+        doDeleteOatFiles(oatDir, nameStart);
+        doDeleteOatFiles(oatDirArm, nameStart);
+        doDeleteOatFiles(oatDirArm64, nameStart);
+    }
+
+    private void doDeleteOatFiles(File dir, String nameStart) {
+        if (!dir.exists())
+            return;
+        File[] oats = dir.listFiles();
+        if (oats == null)
+            return;
+        for (File oatFile:oats) {
+            if (oatFile.isFile() && oatFile.getName().startsWith(nameStart))
+                oatFile.delete();
+        }
     }
 
     DexFile getDexFile() {

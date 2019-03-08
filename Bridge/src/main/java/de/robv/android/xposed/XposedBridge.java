@@ -3,9 +3,11 @@ package de.robv.android.xposed;
 import android.annotation.SuppressLint;
 import android.util.Log;
 
+import com.elderdrivers.riru.xposed.Main;
 import com.elderdrivers.riru.xposed.core.HookMain;
 import com.elderdrivers.riru.xposed.dexmaker.DynamicBridge;
 import com.elderdrivers.riru.xposed.dexmaker.MethodInfo;
+import com.swift.sandhook.xposedcompat.XposedCompat;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,7 +64,7 @@ public final class XposedBridge {
 	private static final Object[] EMPTY_ARRAY = new Object[0];
 
 	// built-in handlers
-	private static final Map<Member, CopyOnWriteSortedSet<XC_MethodHook>> sHookedMethodCallbacks = new HashMap<>();
+	public static final Map<Member, CopyOnWriteSortedSet<XC_MethodHook>> sHookedMethodCallbacks = new HashMap<>();
 	public static final CopyOnWriteSortedSet<XC_LoadPackage> sLoadedPackageCallbacks = new CopyOnWriteSortedSet<>();
 	/*package*/ static final CopyOnWriteSortedSet<XC_InitPackageResources> sInitPackageResourcesCallbacks = new CopyOnWriteSortedSet<>();
 
@@ -399,7 +401,11 @@ public final class XposedBridge {
 	 */
 	private synchronized static void hookMethodNative(final Member method, Class<?> declaringClass,
                                                       int slot, final Object additionalInfoObj) {
-		DynamicBridge.hookMethod(method, (AdditionalHookInfo) additionalInfoObj);
+		if (Main.useSandHook) {
+			XposedCompat.hookMethod(method, (AdditionalHookInfo) additionalInfoObj);
+		} else {
+			DynamicBridge.hookMethod(method, (AdditionalHookInfo) additionalInfoObj);
+		}
 	}
 
     private static Object invokeOriginalMethodNative(Member method, int methodId,

@@ -108,6 +108,7 @@ tasks.preBuild.dependsOn fixIml
 dependencies {
     compileOnly files("libs/framework-stub.jar")
     compileOnly project(':dexmaker')
+    compileOnly project(':sandhook')
 }
 
 afterEvaluate {

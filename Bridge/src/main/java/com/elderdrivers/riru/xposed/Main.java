@@ -16,6 +16,8 @@ import java.util.Arrays;
 @SuppressLint("DefaultLocale")
 public class Main implements KeepAll {
 
+    public volatile static boolean useSandHook = true;
+
     public static String appDataDir = "";
     public static String appProcessName = "";
     private static String forkAndSpecializePramsStr = "";
