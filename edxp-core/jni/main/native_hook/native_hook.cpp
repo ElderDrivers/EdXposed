@@ -31,6 +31,8 @@ void (*deoptMethod)(void *, void *) = nullptr;
 
 static void (*heapPreForkBackup)(void *) = nullptr;
 
+void* (*sandInlineHook)(void*,void*) = nullptr;
+
 bool my_runtimeInit(void *runtime, void *mapAddr) {
     if (!runtimeInitBackup) {
         LOGE("runtimeInitBackup is null");
@@ -271,11 +273,33 @@ void getSuspendSyms(int api_level, void *artHandle, void (*hookFun)(void *, void
     }
 }
 
+void initHookFunc() {
+    void *sandHandle = dlopen(kLibSandHookPath, RTLD_LAZY | RTLD_GLOBAL);
+    if (!sandHandle) {
+        LOGE("can't open libsandhook-native: %s", dlerror());
+        return;
+    }
+    sandInlineHook = reinterpret_cast<void *(*)(void *, void *)>(dlsym(sandHandle, "SandInlineHook"));
+    if (!sandInlineHook) {
+        LOGE("can't get SandInlineHook");
+        return;
+    }
+}
+
+void doHookFunction(void *origin, void *replace, void **backup) {
+    if (backup != nullptr) {
+        *backup = sandInlineHook(origin, replace);
+    } else {
+        sandInlineHook(origin, replace);
+    }
+}
+
 void install_inline_hooks() {
     if (inlineHooksInstalled) {
         LOGI("inline hooks installed, skip");
         return;
     }
+    initHookFunc();
     LOGI("start to install inline hooks");
     int api_level = GetAndroidApiLevel();
     if (api_level < ANDROID_LOLLIPOP) {
@@ -284,32 +308,17 @@ void install_inline_hooks() {
     }
     install_riru_hooks();
     LOGI("using api level %d", api_level);
-#ifdef __LP64__
-    void *whaleHandle = dlopen(kLibWhalePath, RTLD_LAZY | RTLD_GLOBAL);
-    if (!whaleHandle) {
-        LOGE("can't open libwhale: %s", dlerror());
-        return;
-    }
-    void *hookFunSym = dlsym(whaleHandle, "WInlineHookFunction");
-#else
-    void *hookFunSym = (void *)(MSHookFunction);
-#endif
-    if (!hookFunSym) {
-        LOGE("can't get WInlineHookFunction: %s", dlerror());
-        return;
-    }
-    void (*hookFun)(void *, void *, void **) = reinterpret_cast<void (*)(void *, void *,
-                                                                         void **)>(hookFunSym);
     void *artHandle = dlopen(kLibArtPath, RTLD_LAZY | RTLD_GLOBAL);
     if (!artHandle) {
         LOGE("can't open libart: %s", dlerror());
         return;
     }
-    hookRuntime(api_level, artHandle, hookFun);
-    hookInstrumentation(api_level, artHandle, hookFun);
-    getSuspendSyms(api_level, artHandle, hookFun);
-    hookIsInSamePackage(api_level, artHandle, hookFun);
-    if (disableHiddenAPIPolicyImpl(api_level, artHandle, hookFun)) {
+
+    hookRuntime(api_level, artHandle, doHookFunction);
+    hookInstrumentation(api_level, artHandle, doHookFunction);
+    getSuspendSyms(api_level, artHandle, doHookFunction);
+    hookIsInSamePackage(api_level, artHandle, doHookFunction);
+    if (disableHiddenAPIPolicyImpl(api_level, artHandle, doHookFunction)) {
         LOGI("disableHiddenAPIPolicyImpl done.");
     } else {
         LOGE("disableHiddenAPIPolicyImpl failed.");

@@ -6,9 +6,11 @@
 #if defined(__LP64__)
 static constexpr const char *kLibArtPath = "/system/lib64/libart.so";
 static constexpr const char *kLibWhalePath = "/system/lib64/libwhale.edxp.so";
+static constexpr const char *kLibSandHookPath = "/system/lib64/libsandhook-native.edxp.so";
 #else
 static constexpr const char *kLibArtPath = "/system/lib/libart.so";
 static constexpr const char *kLibWhalePath = "/system/lib/libwhale.edxp.so";
+static constexpr const char *kLibSandHookPath = "/system/lib/libsandhook-native.edxp.so";
 #endif
 
 #define XHOOK_REGISTER(NAME) \

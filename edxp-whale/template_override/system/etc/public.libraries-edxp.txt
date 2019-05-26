@@ -1,1 +1,2 @@
 libwhale.edxp.so
+libsandhook-native.edxp.so
