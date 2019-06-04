@@ -66,7 +66,7 @@ public class WhaleRuntime {
 
     public static native void removeFinalFlagNative(Class<?> cl);
 
-    public static native void enforceDisableHiddenAPIPolicy();
+    /* public static native void enforceDisableHiddenAPIPolicy(); */
 
     private static native void reserved0();
 

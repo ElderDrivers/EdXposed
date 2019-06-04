@@ -51,7 +51,7 @@ namespace edxp {
         if (!art_handle.IsValid()) {
             return;
         }
-        art::hidden_api::DisableHiddenApi(art_handle.Get(), hook_func);
+        /*art::hidden_api::DisableHiddenApi(art_handle.Get(), hook_func);*/
         art::Runtime::Setup(art_handle.Get(), hook_func);
         art::gc::Heap::Setup(art_handle.Get(), hook_func);
         art::ClassLinker::Setup(art_handle.Get(), hook_func);
