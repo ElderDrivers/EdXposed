@@ -15,7 +15,6 @@
 #include "art/runtime/mirror/class.h"
 #include "art/runtime/class_linker.h"
 #include "art/runtime/gc/heap.h"
-#include "art/runtime/hidden_api.h"
 
 namespace edxp {
 
@@ -51,7 +50,6 @@ namespace edxp {
         if (!art_handle.IsValid()) {
             return;
         }
-        /*art::hidden_api::DisableHiddenApi(art_handle.Get(), hook_func);*/
         art::Runtime::Setup(art_handle.Get(), hook_func);
         art::gc::Heap::Setup(art_handle.Get(), hook_func);
         art::ClassLinker::Setup(art_handle.Get(), hook_func);

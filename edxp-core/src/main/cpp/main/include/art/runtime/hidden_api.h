@@ -6,7 +6,7 @@
 namespace art {
 
     namespace hidden_api {
-
+       /*
         enum Action {
             kAllow,
             kAllowButWarn,
@@ -22,7 +22,7 @@ namespace art {
             return Action::kAllow;
         }
 
-/*
+
         static void DisableHiddenApi(void *handle, HookFunType hook_func) {
             if (GetAndroidApiLevel() < ANDROID_P) {
                 return;
@@ -34,7 +34,7 @@ namespace art {
                       "_ZN3art9hiddenapi6detail19GetMemberActionImplINS_8ArtFieldEEENS0_"
                       "6ActionEPT_NS_20HiddenApiAccessFlags7ApiListES4_NS0_12AccessMethodE");
         };
-*/
+      */
     }
 
 }
