@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-EDXP_VERSION="%VERSION% (%VERSION_CODE%) - %BACKEND%"
+EDXP_VERSION="%VERSION% (%BACKEND%)"
 ANDROID_SDK=`getprop ro.build.version.sdk`
 BUILD_DESC=`getprop ro.build.description`
 PRODUCT=`getprop ro.build.product`

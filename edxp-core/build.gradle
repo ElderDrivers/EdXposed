@@ -144,7 +144,7 @@ afterEvaluate {
                         into templateRootPath
                         rename "module.prop.tpl", "module.prop"
                         expand(moduleId: "$magiskModuleId", backend: "$backendCapped",
-                                versionName: "$version" + "($backend)",
+                                versionName: "$version" + " ($backend)",
                                 versionCode: "$versionCode", authorList: "$authorList")
                         filter(FixCrLfFilter.class, eol: FixCrLfFilter.CrLf.newInstance("lf"))
                     }
