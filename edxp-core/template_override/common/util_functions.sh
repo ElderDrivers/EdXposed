@@ -1,6 +1,6 @@
 #!/system/bin/sh
 
-EDXP_VERSION="0.4.3.4_alpha (4340)"
+EDXP_VERSION="0.4.4.5_alpha (4450)"
 ANDROID_SDK=`getprop ro.build.version.sdk`
 BUILD_DESC=`getprop ro.build.description`
 PRODUCT=`getprop ro.build.product`
@@ -79,7 +79,7 @@ start_log_cather () {
 }
 
 start_verbose_log_catcher () {
-  start_log_cather all.log "EdXposed:V EdXposed-Fwk:V EdXposed-dexmaker:V XSharedPreferences:V EdXposed-Bridge:V EdXposed-YAHFA:V EdXposed-Manager:V XposedInstaller:V" true ${LOG_VERBOSE}
+  start_log_cather all.log "EdXposed:V XSharedPreferences:V EdXposed-Bridge:V EdXposed-Manager:V XposedInstaller:V" true ${LOG_VERBOSE}
 }
 
 start_bridge_log_catcher () {

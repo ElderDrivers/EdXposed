@@ -2,14 +2,14 @@ package com.elderdrivers.riru.edxp.util;
 
 import android.util.Log;
 
-import com.elderdrivers.riru.edxp.BuildConfig;
+import com.elderdrivers.riru.edxp.common.BuildConfig;
 
 import de.robv.android.xposed.XposedHelpers;
 
 
 public class Utils {
 
-    public static final String LOG_TAG = "EdXposed-Fwk";
+    public static final String LOG_TAG = "EdXposed";
 
     public static void logD(Object msg) {
         if (BuildConfig.DEBUG)
@@ -46,7 +46,14 @@ public class Utils {
     }
 
     public static String getSysProp(String key) {
-        Class sysProps = XposedHelpers.findClassIfExists("android.os.SystemProperties", null);
-        return (String) XposedHelpers.callStaticMethod(sysProps, "get", key);
+        try {
+            Class sysProps = XposedHelpers.findClassIfExists("android.os.SystemProperties", null);
+            if (sysProps != null) {
+                return (String) XposedHelpers.callStaticMethod(sysProps, "get", key);
+            }
+        } catch (Throwable throwable) {
+            Utils.logE("error when get sys prop", throwable);
+        }
+        return "";
     }
 }

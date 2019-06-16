@@ -2,11 +2,11 @@ package com.elderdrivers.riru.edxp.yahfa.dexmaker;
 
 import android.util.Log;
 
-import com.elderdrivers.riru.edxp.BuildConfig;
+import com.elderdrivers.riru.edxp.yahfa.BuildConfig;
 
 public class DexLog {
 
-    public static final String TAG = "EdXposed-dexmaker";
+    public static final String TAG = "EdXposed";
 
     public static int v(String s) {
         return Log.v(TAG, s);

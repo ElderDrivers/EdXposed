@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <edxp_context.h>
 #include "base/object.h"
 
 namespace art {
@@ -15,15 +16,10 @@ namespace art {
 
             CREATE_FUNC_SYMBOL_ENTRY(const char *, GetDescriptor, void *thiz,
                                      std::string *storage) {
-                return GetDescriptorSym(thiz, storage);
-            }
-
-
-            CREATE_ORIGINAL_ENTRY(bool, IsInSamePackage, void *thiz, void *that) {
-                if (IsInSamePackageBackup) {
-                    return IsInSamePackageBackup(thiz, that);
-                }
-                return false;
+                if (GetDescriptorSym)
+                    return GetDescriptorSym(thiz, storage);
+                else
+                    return "";
             }
 
             CREATE_HOOK_STUB_ENTRIES(bool, IsInSamePackage, void *thiz, void *that) {
@@ -44,7 +40,7 @@ namespace art {
                     || strstr(thatDesc, "android/content/res/XResources$XTypedArray") != nullptr) {
                     return true;
                 }
-                return IsInSamePackage(thiz, that);
+                return IsInSamePackageBackup(thiz, that);
             }
 
         public:
@@ -60,6 +56,16 @@ namespace art {
                 HOOK_FUNC(IsInSamePackage,
                           "_ZN3art6mirror5Class15IsInSamePackageENS_6ObjPtrIS1_EE", //8.0-
                           "_ZN3art6mirror5Class15IsInSamePackageEPS1_"); //5.0-7.1
+
+//                HOOK_FUNC(ClassForName,
+//                          "_ZN3artL18Class_classForNameEP7_JNIEnvP7_jclassP8_jstringhP8_jobject");
+            }
+
+            const char *GetDescriptor(std::string *storage) {
+                if (thiz_ && GetDescriptorSym) {
+                    return GetDescriptor(thiz_, storage);
+                }
+                return "";
             }
         };
 
