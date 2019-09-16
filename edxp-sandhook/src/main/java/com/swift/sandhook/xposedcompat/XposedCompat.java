@@ -3,6 +3,7 @@ package com.swift.sandhook.xposedcompat;
 import android.annotation.SuppressLint;
 import android.os.Process;
 import android.text.TextUtils;
+import android.content.Context;
 
 import com.elderdrivers.riru.edxp.config.ConfigManager;
 import com.swift.sandhook.SandHook;
@@ -24,6 +25,7 @@ public class XposedCompat {
 
     // TODO initialize these variables
     public static volatile File cacheDir;
+    public static Context context;
     public static volatile ClassLoader classLoader;
 
     //try to use internal stub hooker & backup method to speed up hook
@@ -46,9 +48,15 @@ public class XposedCompat {
 
     public static File getCacheDir() {
         if (cacheDir == null) {
-            String fixedAppDataDir = getDataPathPrefix() + getPackageName(ConfigManager.appDataDir) + "/";
-            cacheDir = new File(fixedAppDataDir, "/cache/sandhook/"
-                    + ProcessUtils.getProcessName().replace(":", "_") + "/");
+            if (context == null) {
+                context = ApplicationUtils.currentApplication();
+            }
+            
+            if (context != null) {
+                String fixedAppDataDir = getDataPathPrefix() + getPackageName(ConfigManager.appDataDir) + "/";
+                cacheDir = new File(fixedAppDataDir, "/cache/sandhook/"
+                            + ProcessUtils.getProcessName(context).replace(":", "_") + "/");
+            }
         }
         return cacheDir;
     }

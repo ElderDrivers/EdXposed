@@ -2,6 +2,8 @@ package com.swift.sandhook.xposedcompat.utils;
 
 import android.util.Log;
 
+import com.swift.sandhook.HookLog;
+
 import java.lang.reflect.Member;
 
 
@@ -9,7 +11,7 @@ public class DexLog {
 
     public static final String TAG = "SandXposed";
 
-    public static volatile boolean DEBUG = false;
+    public static boolean DEBUG = HookLog.DEBUG;
 
     public static int v(String s) {
         return Log.v(TAG, s);
@@ -20,21 +22,19 @@ public class DexLog {
     }
 
     public static int d(String s) {
-        if (DEBUG) {
-            return Log.d(TAG, s);
-        } else {
-            return 0;
-        }
+        return Log.d(TAG, s);
     }
 
     public static void printMethodHookIn(Member member) {
         if (DEBUG && member != null) {
-            Log.d("SandHook", "method <" + member.toString() + "> hook in");
+            Log.d(TAG, "method <" + member.toString() + "> hook in");
         }
     }
 
     public static void printCallOriginError(Member member) {
-        Log.e("SandHook", "method <" + member.toString() + "> call origin error!");
+        if (member != null) {
+            Log.e(TAG, "method <" + member.toString() + "> call origin error!");
+        }
     }
 
     public static int w(String s) {

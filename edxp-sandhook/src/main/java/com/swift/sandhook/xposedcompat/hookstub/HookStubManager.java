@@ -5,7 +5,7 @@ import android.util.Log;
 import com.swift.sandhook.SandHook;
 import com.swift.sandhook.SandHookMethodResolver;
 import com.swift.sandhook.utils.ParamWrapper;
-import com.swift.sandhook.wrapper.BackupMethodStubs;
+import com.swift.sandhook.wrapper.StubMethodsFactory;
 import com.swift.sandhook.xposedcompat.XposedCompat;
 import com.swift.sandhook.xposedcompat.utils.DexLog;
 
@@ -167,13 +167,13 @@ public class HookStubManager {
         try {
             if (is64Bit) {
                 Method hook = MethodHookerStubs64.class.getDeclaredMethod(getHookMethodName(curUseStubIndex), pars);
-                Method backup = hasStubBackup ? MethodHookerStubs64.class.getDeclaredMethod(getBackupMethodName(curUseStubIndex), pars) : BackupMethodStubs.getStubMethod();
+                Method backup = hasStubBackup ? MethodHookerStubs64.class.getDeclaredMethod(getBackupMethodName(curUseStubIndex), pars) : StubMethodsFactory.getStubMethod();
                 if (hook == null || backup == null)
                     return null;
                 return new StubMethodsInfo(stubArgs, curUseStubIndex, hook, backup);
             } else {
                 Method hook = MethodHookerStubs32.class.getDeclaredMethod(getHookMethodName(curUseStubIndex), pars);
-                Method backup = hasStubBackup ? MethodHookerStubs32.class.getDeclaredMethod(getBackupMethodName(curUseStubIndex), pars) : BackupMethodStubs.getStubMethod();
+                Method backup = hasStubBackup ? MethodHookerStubs32.class.getDeclaredMethod(getBackupMethodName(curUseStubIndex), pars) : StubMethodsFactory.getStubMethod();
                 if (hook == null || backup == null)
                     return null;
                 return new StubMethodsInfo(stubArgs, curUseStubIndex, hook, backup);
@@ -299,6 +299,7 @@ public class HookStubManager {
                     param.setResult(SandHook.callOriginMethod(originMethod, entity.backup, thiz, param.args));
                 }
             } catch (Throwable e) {
+                XposedBridge.log(e);
                 param.setThrowable(e);
             }
         }
@@ -312,6 +313,7 @@ public class HookStubManager {
             try {
                 ((XC_MethodHook) snapshot[afterIdx]).callAfterHookedMethod(param);
             } catch (Throwable t) {
+                XposedBridge.log(t);
                 if (lastThrowable == null)
                     param.setResult(lastResult);
                 else
@@ -329,7 +331,7 @@ public class HookStubManager {
 
 
         if (XposedBridge.disableHooks) {
-            return SandHook.callOriginMethod(true, origin, backup, thiz, args);
+            return SandHook.callOriginMethod(origin, backup, thiz, args);
         }
 
         DexLog.printMethodHookIn(origin);
@@ -367,8 +369,9 @@ public class HookStubManager {
         // call original method if not requested otherwise
         if (!param.returnEarly) {
             try {
-                param.setResult(SandHook.callOriginMethod(true, origin, backup, thiz, param.args));
+                param.setResult(SandHook.callOriginMethod(origin, backup, thiz, param.args));
             } catch (Throwable e) {
+                XposedBridge.log(e);
                 param.setThrowable(e);
             }
         }
@@ -397,7 +400,7 @@ public class HookStubManager {
     }
 
     public final static long callOrigin(HookMethodEntity entity, Member origin, Object thiz, Object[] args) throws Throwable {
-        Object res = SandHook.callOriginMethod(true, origin, entity.backup, thiz, args);
+        Object res = SandHook.callOriginMethod(origin, entity.backup, thiz, args);
         return entity.getResultAddress(res);
     }
 

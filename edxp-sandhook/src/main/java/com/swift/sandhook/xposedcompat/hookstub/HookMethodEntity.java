@@ -16,10 +16,13 @@ public class HookMethodEntity {
     public Class[] parType;
     public Class retType;
 
+    public boolean isStatic;
+
     public HookMethodEntity(Member origin, Method hook, Method backup) {
         this.origin = origin;
         this.hook = hook;
         this.backup = backup;
+        this.isStatic = Modifier.isStatic(origin.getModifiers());
     }
 
     public Object[] getArgs(long... addresses) {
@@ -28,7 +31,7 @@ public class HookMethodEntity {
         if (parType == null || parType.length == 0)
             return new Object[0];
         int argStart = 0;
-        if (!isStatic()) {
+        if (!isStatic) {
             argStart = 1;
         }
         Object[] args = new Object[parType.length];
@@ -43,7 +46,7 @@ public class HookMethodEntity {
             return new long[0];
         long[] addresses;
         int argStart = 0;
-        if (!isStatic()) {
+        if (!isStatic) {
             argStart = 1;
             addresses = new long[oldAddress.length + 1];
             addresses[0] = oldAddress[0];
@@ -57,7 +60,7 @@ public class HookMethodEntity {
     }
 
     public Object getThis(long address) {
-        if (isStatic())
+        if (isStatic)
             return null;
         return SandHook.getObject(address);
     }
@@ -84,10 +87,6 @@ public class HookMethodEntity {
 
     public boolean isConstructor() {
         return origin instanceof Constructor;
-    }
-
-    public boolean isStatic() {
-        return Modifier.isStatic(origin.getModifiers());
     }
 
 }

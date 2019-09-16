@@ -1,4 +1,6 @@
 package com.swift.sandhook.xposedcompat.utils;
+
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -9,6 +11,13 @@ import java.util.Map;
 import external.com.android.dx.Code;
 import external.com.android.dx.Local;
 import external.com.android.dx.TypeId;
+import external.com.android.dx.rop.code.Insn;
+import external.com.android.dx.rop.code.PlainInsn;
+import external.com.android.dx.rop.code.RegisterSpec;
+import external.com.android.dx.rop.code.RegisterSpecList;
+import external.com.android.dx.rop.code.Rops;
+import external.com.android.dx.rop.code.SourcePosition;
+import external.com.android.dx.rop.type.Type;
 
 public class DexMakerUtils {
 
@@ -209,6 +218,44 @@ public class DexMakerUtils {
         String unboxMethod;
         TypeId<?> boxTypeId;
         code.returnValue(resultLocals.get(returnType));
+    }
+
+    public static void moveException(Code code, Local<?> result) {
+        addInstruction(code, new PlainInsn(Rops.opMoveException(Type.THROWABLE),
+                SourcePosition.NO_INFO, spec(result), RegisterSpecList.EMPTY));
+    }
+
+    public static void addInstruction(Code code, Insn insn) {
+        if (addInstMethod == null) {
+            try {
+                addInstMethod = Code.class.getDeclaredMethod("addInstruction", Insn.class);
+                addInstMethod.setAccessible(true);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            addInstMethod.invoke(code, insn);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static RegisterSpec spec(Local<?> result) {
+        if (specMethod == null) {
+            try {
+                specMethod = Local.class.getDeclaredMethod("spec");
+                specMethod.setAccessible(true);
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            return (RegisterSpec) specMethod.invoke(result);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static String MD5(String source) {

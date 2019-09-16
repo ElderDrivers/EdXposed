@@ -1,8 +1,10 @@
 package com.swift.sandhook.xposedcompat.methodgen;
 
+import android.os.Build;
 import android.text.TextUtils;
 
 import com.swift.sandhook.SandHook;
+import com.swift.sandhook.SandHookConfig;
 import com.swift.sandhook.wrapper.HookWrapper;
 import com.swift.sandhook.xposedcompat.hookstub.HookStubManager;
 
@@ -170,18 +172,28 @@ public class HookerDexMakerNew implements HookMaker {
         generateHookMethod();
         generateBackupMethod();
 
-        ClassLoader loader;
+        ClassLoader loader = null;
         if (TextUtils.isEmpty(mDexDirPath)) {
-            throw new IllegalArgumentException("dexDirPath should not be empty!!!");
+            if (SandHookConfig.SDK_INT < Build.VERSION_CODES.O) {
+                throw new IllegalArgumentException("dexDirPath should not be empty!!!");
+            } else {
+                byte[] dexBytes = mDexMaker.generate();
+                loader = new InMemoryDexClassLoader(ByteBuffer.wrap(dexBytes), mAppClassLoader);
+            }
+        } else {
+            // Create the dex file and load it.
+            try {
+                loader = mDexMaker.generateAndLoad(mAppClassLoader, new File(mDexDirPath), dexName);
+            } catch (IOException e) {
+                //can not write file
+                if (SandHookConfig.SDK_INT >= Build.VERSION_CODES.O) {
+                    byte[] dexBytes = mDexMaker.generate();
+                    loader = new InMemoryDexClassLoader(ByteBuffer.wrap(dexBytes), mAppClassLoader);
+                }
+            }
         }
-        // Create the dex file and load it.
-        try {
-            loader = mDexMaker.generateAndLoad(mAppClassLoader, new File(mDexDirPath), dexName, true);
-        } catch (IOException e) {
-            //can not write file
-            byte[] dexBytes = mDexMaker.generate();
-            loader = new InMemoryDexClassLoader(ByteBuffer.wrap(dexBytes), mAppClassLoader);
-        }
+        if (loader == null)
+            return null;
         return loadHookerClass(loader, className);
     }
 

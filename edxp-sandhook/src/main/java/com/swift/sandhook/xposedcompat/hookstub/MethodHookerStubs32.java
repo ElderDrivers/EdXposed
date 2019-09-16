@@ -1,7 +1,9 @@
 package com.swift.sandhook.xposedcompat.hookstub;
 
-import static com.swift.sandhook.xposedcompat.hookstub.HookStubManager.getMethodId;
 import static com.swift.sandhook.xposedcompat.hookstub.HookStubManager.hookBridge;
+import static com.swift.sandhook.xposedcompat.hookstub.HookStubManager.getMethodId;
+import static com.swift.sandhook.xposedcompat.hookstub.HookStubManager.originMethods;
+import static com.swift.sandhook.xposedcompat.utils.DexLog.printCallOriginError;
 
 /**
 *   this file is auto gen by genhookstubs.py
