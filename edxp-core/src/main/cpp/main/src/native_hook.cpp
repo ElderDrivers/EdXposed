@@ -15,7 +15,6 @@
 #include "art/runtime/mirror/class.h"
 #include "art/runtime/class_linker.h"
 #include "art/runtime/gc/heap.h"
-#include "art/runtime/hidden_api.h"
 #include "art/runtime/oat_file_manager.h"
 #include "framework/fd_utils.h"
 
@@ -83,7 +82,6 @@ namespace edxp {
         if (art_hooks_installed) {
             return;
         }
-        art::hidden_api::DisableHiddenApi(art_handle, hook_func);
         art::Runtime::Setup(art_handle, hook_func);
         art::gc::Heap::Setup(art_handle, hook_func);
         art::ClassLinker::Setup(art_handle, hook_func);
