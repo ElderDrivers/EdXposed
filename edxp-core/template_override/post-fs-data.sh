@@ -11,7 +11,7 @@ grep_prop() {
 MODDIR=${0%/*}
 
 RIRU_PATH="/data/misc/riru"
-TARGET="${RIRU_PATH}/modules/edxp"
+TARGET="${RIRU_PATH}/modules"
 
 EDXP_VERSION=$(grep_prop version "${MODDIR}/module.prop")
 
@@ -159,8 +159,11 @@ start_log_cather all "EdXposed:V XSharedPreferences:V EdXposed-Bridge:V EdXposed
 # start_bridge_log_catcher
 start_log_cather error "XSharedPreferences:V EdXposed-Bridge:V" true true
 
-[[ -d "${TARGET}" ]] || mkdir -p "${TARGET}"
 
-cp "${MODDIR}/module.prop" "${TARGET}/module.prop"
+if [[ -f "/data/misc/riru/modules/edxp.prop" ]]; then
+    CONFIG=$(cat "/data/misc/riru/modules/edxp.prop")
+    [[ -d "${TARGET}/${CONFIG}" ]] || mkdir -p "${TARGET}/${CONFIG}"
+    cp "${MODDIR}/module.prop" "${TARGET}/${CONFIG}/module.prop"
+fi
 
 chcon -R u:object_r:system_file:s0 "${MODDIR}"
