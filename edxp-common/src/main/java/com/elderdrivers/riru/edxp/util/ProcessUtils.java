@@ -7,12 +7,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 public class ProcessUtils {
-
-    // Copied from UserHandle, indicates range of uids allocated for a user.
-    public static final int PER_USER_RANGE = 100000;
-    public static final int USER_SYSTEM = 0;
 
     public static String getCurrentProcessName(String prettyName) {
         if (!TextUtils.isEmpty(prettyName)) {
@@ -28,9 +25,8 @@ public class ProcessUtils {
         BufferedReader cmdlineReader = null;
         try {
             cmdlineReader = new BufferedReader(new InputStreamReader(
-                    new FileInputStream(
-                            "/proc/" + pid + "/cmdline"),
-                    "iso-8859-1"));
+                    new FileInputStream("/proc/" + pid + "/cmdline"),
+                    StandardCharsets.ISO_8859_1));
             int c;
             StringBuilder processName = new StringBuilder();
             while ((c = cmdlineReader.read()) > 0) {
