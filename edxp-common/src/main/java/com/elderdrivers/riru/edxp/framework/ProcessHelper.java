@@ -1,40 +1,25 @@
 package com.elderdrivers.riru.edxp.framework;
 
-import de.robv.android.xposed.XposedHelpers;
+import android.os.Process;
+import android.os.UserHandle;
+
+import static de.robv.android.xposed.XposedHelpers.callStaticMethod;
+import static de.robv.android.xposed.XposedHelpers.getStaticIntField;
 
 public class ProcessHelper {
-
-    static {
-        // WEBVIEW_ZYGOTE_UID differ among versions
-        WEBVIEW_ZYGOTE_UID = XposedHelpers.getStaticIntField(android.os.Process.class, "WEBVIEW_ZYGOTE_UID");
-    }
 
     /**
      * Defines the UID/GID for the shared RELRO file updater process.
      */
-    public static final int SHARED_RELRO_UID = 1037;
+    public static final int SHARED_RELRO_UID = getStaticIntField(Process.class, "SHARED_RELRO_UID");
 
     /**
      * Defines the UID/GID for the WebView zygote process.
      */
-    public static final int WEBVIEW_ZYGOTE_UID;
-
-    /**
-     * First uid used for fully isolated sandboxed processes (with no permissions of their own)
-     */
-    public static final int FIRST_ISOLATED_UID = 99000;
-    /**
-     * Last uid used for fully isolated sandboxed processes (with no permissions of their own)
-     */
-    public static final int LAST_ISOLATED_UID = 99999;
-
-    /**
-     * Range of uids allocated for a user.
-     */
-    public static final int PER_USER_RANGE = 100000;
+    public static final int WEBVIEW_ZYGOTE_UID = getStaticIntField(Process.class, "WEBVIEW_ZYGOTE_UID");
 
     public static int getAppId(int uid) {
-        return uid % PER_USER_RANGE;
+        return (int) callStaticMethod(UserHandle.class, "getAppId", uid);
     }
 
     public static boolean isRELROUpdater(int uid) {
@@ -46,7 +31,6 @@ public class ProcessHelper {
     }
 
     public static boolean isIsolated(int uid) {
-        uid = getAppId(uid);
-        return uid >= FIRST_ISOLATED_UID && uid <= LAST_ISOLATED_UID;
+        return (boolean) callStaticMethod(UserHandle.class, "isIsolated", uid);
     }
 }
