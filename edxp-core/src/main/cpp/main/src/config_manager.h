@@ -16,7 +16,7 @@ namespace edxp {
     public:
 
         static ConfigManager *GetInstance() {
-            if (instance_ == 0) {
+            if (instance_ == nullptr) {
                 instance_ = new ConfigManager();
             }
             return instance_;
