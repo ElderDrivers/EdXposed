@@ -54,10 +54,12 @@ namespace edxp {
 
     }
 
-    static jboolean ConfigManager_isAppNeedHook(JNI_START, jstring appDataDir) {
+    static jboolean ConfigManager_isAppNeedHook(JNI_START, jint userId, jstring appDataDir, jstring niceName) {
         const char *app_data_dir = env->GetStringUTFChars(appDataDir, JNI_FALSE);
-        auto result = (jboolean) ConfigManager::GetInstance()->IsAppNeedHook(app_data_dir);
+        const char *nice_name = env->GetStringUTFChars(niceName, JNI_FALSE);
+        auto result = (jboolean) ConfigManager::GetInstance()->IsAppNeedHook(userId, app_data_dir, nice_name);
         env->ReleaseStringUTFChars(appDataDir, app_data_dir);
+        env->ReleaseStringUTFChars(niceName, nice_name);
         return result;
     }
 
@@ -73,7 +75,7 @@ namespace edxp {
             NATIVE_METHOD(ConfigManager, getLibWhaleName, "()Ljava/lang/String;"),
             NATIVE_METHOD(ConfigManager, getDataPathPrefix, "()Ljava/lang/String;"),
             NATIVE_METHOD(ConfigManager, getInstallerConfigPath, "(Ljava/lang/String;)Ljava/lang/String;"),
-            NATIVE_METHOD(ConfigManager, isAppNeedHook, "(Ljava/lang/String;)Z"),
+            NATIVE_METHOD(ConfigManager, isAppNeedHook, "(ILjava/lang/String;Ljava/lang/String;)Z"),
     };
 
     void RegisterConfigManagerMethods(JNIEnv *env) {

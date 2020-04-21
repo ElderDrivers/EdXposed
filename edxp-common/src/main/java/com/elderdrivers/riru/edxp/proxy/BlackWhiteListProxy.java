@@ -1,5 +1,7 @@
 package com.elderdrivers.riru.edxp.proxy;
 
+import android.os.Process;
+import android.os.UserHandle;
 import android.text.TextUtils;
 
 import com.elderdrivers.riru.edxp.config.ConfigManager;
@@ -97,7 +99,7 @@ public class BlackWhiteListProxy extends BaseProxy {
         ConfigManager.niceName = niceName;
         final boolean isDynamicModulesMode = ConfigManager.isDynamicModulesEnabled();
         mRouter.onEnterChildProcess();
-        if (!checkNeedHook(appDataDir, niceName)) {
+        if (!checkNeedHook(Process.myUserHandle(), appDataDir, niceName)) {
             // if is blacklisted, just stop here
             mRouter.onForkFinish();
             return;
@@ -120,20 +122,19 @@ public class BlackWhiteListProxy extends BaseProxy {
         mRouter.onForkFinish();
     }
 
-    private boolean checkNeedHook(String appDataDir, String niceName) {
-        boolean needHook;
+    private boolean checkNeedHook(UserHandle user, String appDataDir, String niceName) {
         if (TextUtils.isEmpty(appDataDir)) {
             Utils.logE("niceName:" + niceName + ", procName:"
                     + ProcessUtils.getCurrentProcessName(ConfigManager.appProcessName) + ", appDataDir is null, blacklisted!");
-            needHook = false;
-        } else {
-            // FIXME some process cannot read app_data_file because of MLS, e.g. bluetooth
-            needHook = ConfigManager.isAppNeedHook(appDataDir);
+            return false;
         }
-        if (!needHook) {
-            // clean up the scene
-            onBlackListed();
-        }
-        return needHook;
+
+        // FIXME some process cannot read app_data_file because of MLS, e.g. bluetooth
+        if (ConfigManager.isAppNeedHook(user.hashCode(), appDataDir, niceName))
+            return true;
+
+        // clean up the scene
+        onBlackListed();
+        return false;
     }
 }

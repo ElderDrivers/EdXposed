@@ -105,7 +105,9 @@ namespace edxp {
         }
     }
 
-    bool ConfigManager::IsAppNeedHook(const std::string &app_data_dir) {
+    bool ConfigManager::IsAppNeedHook(const int userId, const std::string &app_data_dir, const std::string &nice_name) {
+        LOGI("IsAppNeedHook(): user = %d, dir = %s, name = %s", userId, app_data_dir.c_str(), nice_name.c_str());
+
         // zygote always starts with `uid == 0` and then fork into different user.
         // so we have to check if we are the correct user or not.
         uid_t user = 0;
