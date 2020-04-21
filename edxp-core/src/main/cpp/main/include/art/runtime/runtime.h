@@ -22,10 +22,10 @@ namespace art {
             else
                 instance_ = new Runtime(thiz);
             bool success = InitBackup(thiz, runtime_options);
-            if (edxp::ConfigManager::GetInstance()->IsDeoptBootImageEnabled()) {
-                DeoptimizeBootImage(thiz);
-                LOGI("DeoptimizeBootImage done");
-            }
+//            if (edxp::ConfigManager::GetInstance()->IsDeoptBootImageEnabled()) {
+//                DeoptimizeBootImage(thiz);
+//                LOGI("DeoptimizeBootImage done");
+//            }
             return success;
         }
 
