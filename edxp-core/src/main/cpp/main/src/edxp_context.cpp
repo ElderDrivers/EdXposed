@@ -234,7 +234,6 @@ namespace edxp {
                                          jlong effective_capabilities) {
         app_data_dir_ = env->NewStringUTF(SYSTEM_SERVER_DATA_DIR);
         PrepareJavaEnv(env);
-        LOGI("OnNativeForkSystemServerPre(): uid = %d, gid = %d", uid, gid);
         // jump to java code
         FindAndCall(env, "forkSystemServerPre", "(II[II[[IJJ)V", uid, gid, gids, runtime_flags,
                     rlimits, permitted_capabilities, effective_capabilities);
@@ -269,7 +268,6 @@ namespace edxp {
         app_data_dir_ = app_data_dir;
         nice_name_ = nice_name;
         PrepareJavaEnv(env);
-        LOGI("OnNativeForkAndSpecializePre(): uid = %d, gid = %d", uid, gid);
         FindAndCall(env, "forkAndSpecializePre",
                     "(II[II[[IILjava/lang/String;Ljava/lang/String;[I[IZLjava/lang/String;Ljava/lang/String;)V",
                     uid, gid, gids, runtime_flags, rlimits,
