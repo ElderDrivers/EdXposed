@@ -1,0 +1,36 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+    - uses: actions/cache@v1
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    - name: Setup environment
+      run: |
+        echo "y" | sudo /usr/local/lib/android/sdk/tools/bin/sdkmanager --install "build-tools;29.0.3" --sdk_root=${ANDROID_SDK_ROOT}
+    - name: Build with Gradle
+      run: |
+        export PATH=$PATH:${ANDROID_SDK_ROOT}/build-tools/29.0.3
+        ./gradlew :edxp-core:zipYahfaRelease
+        ./gradlew :edxp-core:zipSandhookRelease
+    - uses: actions/upload-artifact@v2
+      with:
+       path: edxp-core/release/**/*.zip
