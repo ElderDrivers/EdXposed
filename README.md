@@ -1,4 +1,4 @@
-# EdXposed Framework
+# EdXposed Framework TEST
 
 [![Latest builds](https://ci.appveyor.com/api/projects/status/qu3vj1d64nqia1b8/branch/master?svg=true)](https://ci.appveyor.com/project/ElderDrivers/edxposed/branch/master) [![中文说明文档](art/README_CN.png)](README_CN.md)
 
