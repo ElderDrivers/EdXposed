@@ -2,7 +2,15 @@ name: Android CI
 
 on:
   push:
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '!.github/workflows/**'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+      - '!.github/workflows/**'
 
 jobs:
   build:
