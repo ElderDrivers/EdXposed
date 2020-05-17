@@ -37,6 +37,13 @@ jobs:
         export PATH=$PATH:${ANDROID_SDK_ROOT}/build-tools/29.0.3
         ./gradlew :edxp-core:zipYahfaRelease
         ./gradlew :edxp-core:zipSandhookRelease
-    - uses: actions/upload-artifact@v2
+    - name: Upload YAHFA build
+      uses: actions/upload-artifact@v2
       with:
-       path: edxp-core/release/**/*.zip
+       name: YAHFA Build
+       path: edxp-core/release/**/*-YAHFA-*.zip
+    - name: Upload SandHook build
+      uses: actions/upload-artifact@v2
+      with:
+       name: SandHook Build
+       path: edxp-core/release/**/*-SandHook-*.zip
