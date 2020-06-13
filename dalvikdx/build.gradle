@@ -9,6 +9,9 @@ sourceCompatibility = "7"
 targetCompatibility = "7"
 
 task findDx {
+    if (OperatingSystem.current().isWindows()){
+        return true
+    }
     doLast {
         new ByteArrayOutputStream().withStream { os ->
             exec {
