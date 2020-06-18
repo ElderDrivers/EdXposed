@@ -17,7 +17,7 @@ namespace edxp {
     
     //Max length of property values
     //Ref https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/os/SystemProperties.java
-    static const int PROP_VALUE_MAX = 91;
+    //static const int PROP_VALUE_MAX = 91;
 
     NEW_FUNC_DEF(int, __system_property_get, const char *key, char *value) {
         int res = old___system_property_get(key, value);
