@@ -69,6 +69,7 @@ namespace edxp {
             }
         }
         return res;
+        }
     }
 
     NEW_FUNC_DEF(std::string,
