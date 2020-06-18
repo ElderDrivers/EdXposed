@@ -69,7 +69,6 @@ namespace edxp {
             }
         }
         return res;
-        }
     }
 
     NEW_FUNC_DEF(std::string,
@@ -100,11 +99,10 @@ namespace edxp {
                         res.append(kPropValueCompilerFlagsWS);
                     }
                 }
+                if(strstr(res.c_str(),kPropValueCompilerFlags) != NULL)
+                    LOGI("android::base::GetProperty: %s -> %s", key.c_str(), res.c_str());
             }
             
-            if(strstr(res.c_str(),kPropValueCompilerFlags) != NULL)
-                LOGI("android::base::GetProperty: %s -> %s", key.c_str(), res.c_str());
-        }
                 
         if (api_level == ANDROID_O_MR1) {
             // see __system_property_get hook above for explanations
