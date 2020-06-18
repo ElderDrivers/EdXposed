@@ -14,6 +14,10 @@
 namespace edxp {
 
     static int api_level = 0;
+    
+    //Max length of property values
+    //Ref https://android.googlesource.com/platform/frameworks/base/+/master/core/java/android/os/SystemProperties.java
+    static const int PROP_VALUE_MAX = 91;
 
     NEW_FUNC_DEF(int, __system_property_get, const char *key, char *value) {
         int res = old___system_property_get(key, value);
@@ -30,16 +34,18 @@ namespace edxp {
             */
             
             if(strcmp(kPropKeyCompilerFlags, key) == 0) {
-                if(strcmp(value,"") == 0) {
+                if(strcmp(value,"") == 0)
                     strcpy(value, kPropValueCompilerFlags);
-                }else{
-                    if(strlen(value) + strlen(kPropValueCompilerFlagsWS) > 91) {
-                        LOGI("Cannot add option to disable inline opt!");
-                    }else{
-                        if(strstr(value,kPropValueCompilerFlags) == NULL)
+                else {
+                    if(strstr(value,kPropValueCompilerFlags) == NULL) {
+                        if(strlen(value) + strlen(kPropValueCompilerFlagsWS) > PROP_VALUE_MAX) {
+                            //just fallback,why not
+                            LOGI("Cannot add option to disable inline opt!Fall back to replace..");
+                            strcpy(value, kPropValueCompilerFlags);
+                        }else {
                             strcat(value,kPropValueCompilerFlagsWS);
+                        }
                     }
-                }
                 if(strstr(value,kPropValueCompilerFlags) != NULL)
                     LOGI("system_property_get: %s -> %s", key, value);
             }
@@ -79,17 +85,22 @@ namespace edxp {
             LOGI("android::base::GetProperty: %s -> %s", key.c_str(), res.c_str());
         }
         */
+        
         if(strcmp(kPropKeyCompilerFlags, key.c_str()) == 0) {
-            if(strcmp(res.c_str(),"") == 0) {
+            if(strcmp(res.c_str(),"") == 0)
                 res = kPropValueCompilerFlags;
-            }else{
-                if(strlen(res.c_str()) + strlen(kPropValueCompilerFlagsWS) > 91) {
-                    LOGI("Cannot add option to disable inline opt!");
-                }else{
-                    if(strstr(res.c_str(),kPropValueCompilerFlags) == NULL)
+            else{
+                if(strstr(res.c_str(),kPropValueCompilerFlags) == NULL) {
+                    if(strlen(res.c_str()) + strlen(kPropValueCompilerFlagsWS) > PROP_VALUE_MAX) {
+                        //just fallback,why not
+                        LOGI("Cannot add option to disable inline opt!Fall back to replace..");
+                        res = kPropValueCompilerFlags;
+                    }else {
                         res.append(kPropValueCompilerFlagsWS);
+                    }
                 }
             }
+            
             if(strstr(res.c_str(),kPropValueCompilerFlags) != NULL)
                 LOGI("android::base::GetProperty: %s -> %s", key.c_str(), res.c_str());
         }
