@@ -115,6 +115,18 @@ namespace edxp {
 
         entry_class_ = (jclass) (env->NewGlobalRef(
                 FindClassFromLoader(env, GetCurrentClassLoader(), kEntryClassName)));
+                
+        if (LIKELY(app_data_dir_)) {
+            const char *data_dir = env->GetStringUTFChars(app_data_dir_, JNI_FALSE);
+            if (!ConfigManager::GetInstance()->IsAppNeedHook(data_dir)){
+                env->ReleaseStringUTFChars(app_data_dir_, data_dir);
+                env->DeleteGlobalRef(inject_class_loader_);
+                env->DeleteGlobalRef(class_linker_class_);
+                //env->DeleteGlobalRef(entry_class_);
+                return;
+            }
+            env->ReleaseStringUTFChars(app_data_dir_, data_dir);
+        }
 
         RegisterEdxpResourcesHook(env);
         RegisterFrameworkZygote(env);
