@@ -6,7 +6,14 @@ android {
     compileSdkVersion 28
 }
 
+task("copyStubJarDebugHacks", type: Copy) {
+    println "copyStubJarDebugHacks"
+    from "${projectDir}/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/"
+    into "${projectDir}/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/"
+}
+
 task makeStubJar(type: Jar){
+    dependsOn copyStubJarDebugHacks
     baseName 'framework-stub'
     from("${projectDir}/build/intermediates/javac/release/compileReleaseJavaWithJavac/classes/")
     into('')
