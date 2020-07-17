@@ -217,6 +217,10 @@ static int doBackupAndHook(JNIEnv *env, void *targetMethod, void *hookMethod, vo
 
 static void ensureMethodCached(void *hookMethod, void *backupMethod,
                                void *hookClassResolvedMethods) {
+    if (!backupMethod || (long) backupMethod < 0x1000) {
+        LOGW("ensureMethodCached: backupMethod is null or illegal: %p", backupMethod);
+        return;
+    }
     void *dexCacheResolvedMethods;
     // then we get the dex method index of the static backup method
     int methodIndex = read32(
