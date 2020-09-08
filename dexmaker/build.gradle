@@ -1,10 +1,21 @@
 import org.gradle.internal.os.OperatingSystem
+import proguard.gradle.ProGuardTask
 apply plugin: 'java'
 
 description = "A utility for doing compile or runtime code generation targeting Android's Dalvik VM"
 
 targetCompatibility = '1.7'
 sourceCompatibility = '1.7'
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'net.sf.proguard:proguard-gradle:6.0.3'
+    }
+}
 
 repositories {
     jcenter()
@@ -14,17 +25,27 @@ dependencies {
     compileOnly project(':dalvikdx')
 }
 
+task proguardFiles(type: ProGuardTask, dependsOn: jar) {
+    verbose
+    forceprocessing
+    configuration files('proguard-rules.pro')
+    libraryjars files('C:/Program Files (x86)/Android/android-sdk/platforms/android-28/android.jar',tasks.getByPath(':dalvikdx:jar').outputs)
+    injars jar.destinationDir.path + "/" + "${jar.archiveName}"
+    outjars jar.destinationDir.path + "/" + "pro_${jar.archiveName}"
+}
+
 task dexInJar(type: Jar) {
-    dependsOn jar
+    dependsOn proguardFiles
+    
     doFirst {
         exec {
             workingDir jar.destinationDir
             if (OperatingSystem.current().isWindows()){
                 executable "dx.bat"
-                args "--dex", "--output", "classes.dex", "${jar.archiveName}"
+                args "--dex", "--output", "classes.dex", "pro_${jar.archiveName}"
             } else {
                 executable "bash"
-                args rootProject.ext.dxPath.trim(), "--dex", "--output", "classes.dex", "${jar.archiveName}"
+                args rootProject.ext.dxPath.trim(), "--dex", "--output", "classes.dex", "pro_${jar.archiveName}"
             }
         }
     }
