@@ -24,7 +24,7 @@
 -dontshrink
 -optimizationpasses 2
 -dontpreverify
--optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*,!method/marking/private
+-optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*,!method/marking/private,!code/allocation/variable
 -dontusemixedcaseclassnames
 -dontskipnonpubliclibraryclasses
 -android
