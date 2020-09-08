@@ -29,6 +29,9 @@
 -dontskipnonpubliclibraryclasses
 -android
 
+-keepclassmembers class external.com.android.dx.DexMaker  {
+    public <methods>;  
+}
 
 -keep class de.robv.android.xposed.** {*;}
 -keep class android.** { *; }
