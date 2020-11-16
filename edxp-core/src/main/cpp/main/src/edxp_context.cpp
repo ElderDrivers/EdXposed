@@ -22,27 +22,12 @@
 #pragma clang diagnostic ignored "-Wunused-value"
 
 namespace edxp {
-
-    Context *Context::instance_ = nullptr;
-
-    Context *Context::GetInstance() {
-        if (instance_ == nullptr) {
-            instance_ = new Context();
-        }
-        return instance_;
-    }
-
-    ALWAYS_INLINE bool Context::IsInitialized() const {
-        return initialized_;
-    }
-
-    ALWAYS_INLINE Variant Context::GetVariant() const {
-        return variant_;
-    }
-
-    ALWAYS_INLINE jobject Context::GetCurrentClassLoader() const {
-        return inject_class_loader_;
-    }
+    constexpr int FIRST_ISOLATED_UID = 99000;
+    constexpr int LAST_ISOLATED_UID = 99999;
+    constexpr int FIRST_APP_ZYGOTE_ISOLATED_UID = 90000;
+    constexpr int LAST_APP_ZYGOTE_ISOLATED_UID = 98999;
+    constexpr int SHARED_RELRO_UID = 1037;
+    constexpr int PER_USER_RANGE = 100000;
 
     void Context::CallPostFixupStaticTrampolinesCallback(void *class_ptr, jmethodID callback_mid) {
         if (UNLIKELY(!callback_mid || !class_linker_class_)) {
@@ -95,8 +80,6 @@ namespace edxp {
             LOG(ERROR) << "PathClassLoader creation failed!!!";
             return;
         }
-
-        // TODO clear up all these global refs if blacklisted?
 
         inject_class_loader_ = env->NewGlobalRef(my_cl);
 
@@ -188,6 +171,42 @@ namespace edxp {
         LoadDexAndInit(env, kInjectDexPath);
     }
 
+    void Context::ReleaseJavaEnv(JNIEnv *env) {
+        if (UNLIKELY(!instance_)) return;
+
+        auto xposed_bridge_class = FindClassFromLoader(env, inject_class_loader_, kXposedBridgeClassName);
+        if(LIKELY(xposed_bridge_class)){
+            jmethodID clear_all_callbacks_method = JNI_GetStaticMethodID(env, xposed_bridge_class, "clearAllCallbacks",
+                                                "()V");
+            if(LIKELY(clear_all_callbacks_method)) {
+                JNI_CallStaticVoidMethod(env, xposed_bridge_class, clear_all_callbacks_method);
+            }
+        }
+
+        initialized_ = false;
+        if (entry_class_) {
+            env->DeleteGlobalRef(entry_class_);
+            entry_class_ = nullptr;
+        }
+        if (class_linker_class_) {
+            env->DeleteGlobalRef(class_linker_class_);
+            class_linker_class_ = nullptr;
+        }
+        if (inject_class_loader_) {
+            env->DeleteGlobalRef(inject_class_loader_);
+            inject_class_loader_ = nullptr;
+        }
+        app_data_dir_ = nullptr;
+        nice_name_ = nullptr;
+        vm_ = nullptr;
+        pre_fixup_static_mid_ = nullptr;
+        post_fixup_static_mid_ = nullptr;
+
+        auto systemClass    = env->FindClass("java/lang/System");
+        auto systemGCMethod = env->GetStaticMethodID(systemClass, "gc", "()V");
+        env->CallStaticVoidMethod(systemClass, systemGCMethod);
+    }
+
 
     inline void Context::FindAndCall(JNIEnv *env, const char *method_name,
                                      const char *method_sig, ...) const {
@@ -204,26 +223,6 @@ namespace edxp {
         } else {
             LOGE("method %s id is null", method_name);
         }
-    }
-
-    ALWAYS_INLINE JavaVM *Context::GetJavaVM() const {
-        return vm_;
-    }
-
-    ALWAYS_INLINE void Context::SetAppDataDir(jstring app_data_dir) {
-        app_data_dir_ = app_data_dir;
-    }
-
-    ALWAYS_INLINE jstring Context::GetAppDataDir() const {
-        return app_data_dir_;
-    }
-
-    ALWAYS_INLINE void Context::SetNiceName(jstring nice_name) {
-        nice_name_ = nice_name;
-    }
-
-    ALWAYS_INLINE jstring Context::GetNiceName() const {
-        return nice_name_;
     }
 
     void
@@ -252,6 +251,35 @@ namespace edxp {
         return 0;
     }
 
+    std::tuple<bool, bool> Context::ShouldSkipInject(JNIEnv *env, jstring nice_name, jstring data_dir, jint uid,
+                                   jboolean is_child_zygote) {
+        const auto app_id = uid % PER_USER_RANGE;
+        const JUTFString package_name(env, nice_name, "UNKNOWN");
+        bool skip = false;
+        bool release = true;
+        if (is_child_zygote) {
+            skip = true;
+            release = false; // In Android R, calling XposedBridge.clearAllCallbacks cause crashes.
+            LOGW("skip injecting into %s because it's a child zygote", package_name.get());
+        }
+
+        if ((app_id >= FIRST_ISOLATED_UID && app_id <= LAST_ISOLATED_UID) ||
+            (app_id >= FIRST_APP_ZYGOTE_ISOLATED_UID && app_id <= LAST_APP_ZYGOTE_ISOLATED_UID) ||
+            app_id == SHARED_RELRO_UID) {
+            skip = true;
+            release = false; // In Android R, calling XposedBridge.clearAllCallbacks cause crashes.
+            LOGW("skip injecting into %s because it's isolated", package_name.get());
+        }
+
+        const JUTFString dir(env, data_dir);
+        if(!dir || !ConfigManager::GetInstance()->IsAppNeedHook(dir)) {
+            skip = true;
+            LOGW("skip injecting xposed into %s because it's whitelisted/blacklisted",
+                 package_name.get());
+        }
+        return {skip, release};
+    }
+
     void Context::OnNativeForkAndSpecializePre(JNIEnv *env, jclass clazz,
                                                jint uid, jint gid,
                                                jintArray gids,
@@ -265,21 +293,33 @@ namespace edxp {
                                                jboolean is_child_zygote,
                                                jstring instruction_set,
                                                jstring app_data_dir) {
+        std::tie(skip_, release_) = ShouldSkipInject(env, nice_name, app_data_dir, uid, is_child_zygote);
         app_data_dir_ = app_data_dir;
         nice_name_ = nice_name;
         PrepareJavaEnv(env);
-        FindAndCall(env, "forkAndSpecializePre",
-                    "(II[II[[IILjava/lang/String;Ljava/lang/String;[I[IZLjava/lang/String;Ljava/lang/String;)V",
-                    uid, gid, gids, runtime_flags, rlimits,
-                    mount_external, se_info, nice_name, fds_to_close, fds_to_ignore,
-                    is_child_zygote, instruction_set, app_data_dir);
+        if(!skip_) {
+            FindAndCall(env, "forkAndSpecializePre",
+                        "(II[II[[IILjava/lang/String;Ljava/lang/String;[I[IZLjava/lang/String;Ljava/lang/String;)V",
+                        uid, gid, gids, runtime_flags, rlimits,
+                        mount_external, se_info, nice_name, fds_to_close, fds_to_ignore,
+                        is_child_zygote, instruction_set, app_data_dir);
+        }
     }
 
     int Context::OnNativeForkAndSpecializePost(JNIEnv *env, jclass clazz, jint res) {
         if (res == 0) {
-            PrepareJavaEnv(env);
-            FindAndCall(env, "forkAndSpecializePost", "(ILjava/lang/String;Ljava/lang/String;)V",
-                        res, app_data_dir_, nice_name_);
+            const JUTFString package_name(env, nice_name_);
+            if (!skip_) {
+                PrepareJavaEnv(env);
+                FindAndCall(env, "forkAndSpecializePost",
+                            "(ILjava/lang/String;Ljava/lang/String;)V",
+                            res, app_data_dir_, nice_name_);
+                LOGD("injected xposed into %s", package_name.get());
+            } else {
+                if(release_)
+                    ReleaseJavaEnv(env);
+                LOGD("skipped %s", package_name.get());
+            }
         } else {
             // in zygote process, res is child zygote pid
             // don't print log here, see https://github.com/RikkaApps/Riru/blob/77adfd6a4a6a81bfd20569c910bc4854f2f84f5e/riru-core/jni/main/jni_native_method.cpp#L55-L66
