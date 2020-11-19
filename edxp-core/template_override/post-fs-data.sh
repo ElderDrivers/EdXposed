@@ -152,7 +152,7 @@ cp -f "/system/bin/app_process32" "${MODDIR}/system/bin/app_process32"
 [[ -f "/system/bin/app_process64" ]] && cp -f "/system/bin/app_process64" "${MODDIR}/system/bin/app_process64"
 
 # install stub if manager not installed
-if [[ "$(pm path org.meowcat.edxposed.manager)" == "" && "$(pm path de.robv.android.xposed.installer)" == "" ]]; then
+if [[ "$(pm path org.meowcat.edxposed.manager 2>&1)" == "" && "$(pm path de.robv.android.xposed.installer 2>&1)" == "" ]]; then
     NO_MANAGER=true
 fi
 if [[ ${NO_MANAGER} == true ]]; then
