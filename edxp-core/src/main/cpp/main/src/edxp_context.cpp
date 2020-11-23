@@ -261,16 +261,16 @@ namespace edxp {
             LOGW("skip injecting into %s because it's a child zygote", package_name.get());
         }
 
-        if ((app_id >= FIRST_ISOLATED_UID && app_id <= LAST_ISOLATED_UID) ||
+        if (!skip && ((app_id >= FIRST_ISOLATED_UID && app_id <= LAST_ISOLATED_UID) ||
             (app_id >= FIRST_APP_ZYGOTE_ISOLATED_UID && app_id <= LAST_APP_ZYGOTE_ISOLATED_UID) ||
-            app_id == SHARED_RELRO_UID) {
+            app_id == SHARED_RELRO_UID)) {
             skip = true;
             release = false; // In Android R, calling XposedBridge.clearAllCallbacks cause crashes.
             LOGW("skip injecting into %s because it's isolated", package_name.get());
         }
 
         const JUTFString dir(env, data_dir);
-        if(!dir || !ConfigManager::GetInstance()->IsAppNeedHook(dir)) {
+        if(!skip && (!dir || !ConfigManager::GetInstance()->IsAppNeedHook(dir))) {
             skip = true;
             LOGW("skip injecting xposed into %s because it's whitelisted/blacklisted",
                  package_name.get());
