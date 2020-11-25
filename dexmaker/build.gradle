@@ -29,7 +29,7 @@ task proguardFiles(type: ProGuardTask, dependsOn: jar) {
     verbose
     forceprocessing
     configuration files('proguard-rules.pro')
-    libraryjars files('C:/Program Files (x86)/Android/android-sdk/platforms/android-28/android.jar',tasks.getByPath(':dalvikdx:jar').outputs)
+    libraryjars files(System.getenv('ANDROID_HOME') + '/platforms/android-28/android.jar',tasks.getByPath(':dalvikdx:jar').outputs)
     injars jar.destinationDir.path + "/" + "${jar.archiveName}"
     outjars jar.destinationDir.path + "/" + "pro_${jar.archiveName}"
 }
