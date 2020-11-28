@@ -1,14 +1,14 @@
 package com.elderdrivers.riru.edxp.hooker;
 
-import com.elderdrivers.riru.edxp.config.ConfigManager;
+import com.elderdrivers.riru.edxp.common.BuildConfig;
+import com.elderdrivers.riru.edxp.core.EdxpImpl;
+import com.elderdrivers.riru.edxp.core.Main;
 import com.elderdrivers.riru.edxp.util.Utils;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 
@@ -43,10 +43,27 @@ public class XposedInstallerHooker {
                                 Utils.logD("reloadXposedProp already done, skip...");
                                 return;
                             }
-                            File file = new File(ConfigManager.getXposedPropPath());
-                            FileInputStream is = null;
-                            try {
-                                is = new FileInputStream(file);
+                            //version=92.0-$version ($backend)
+                            StringBuilder stringBuilder = new StringBuilder();
+                            stringBuilder.append("version=");
+                            stringBuilder.append(XposedBridge.getXposedVersion());
+                            stringBuilder.append(".0-");
+                            stringBuilder.append(BuildConfig.VERSION_NAME);
+                            stringBuilder.append(" (");
+                            String variant = "None";
+                            switch (Main.getEdxpVariant()) {
+                                case EdxpImpl.NONE:
+                                    break;
+                                case EdxpImpl.YAHFA:
+                                    variant = "YAHFA";
+                                    break;
+                                case EdxpImpl.SANDHOOK:
+                                    variant = "SandHook";
+                                    break;
+                            }
+                            stringBuilder.append(variant);
+                            stringBuilder.append(")");
+                            try (ByteArrayInputStream is = new ByteArrayInputStream(stringBuilder.toString().getBytes())) {
                                 Object props = XposedHelpers.callStaticMethod(InstallZipUtil,
                                         "parseXposedProp", is);
                                 synchronized (thisObject) {
@@ -55,14 +72,7 @@ public class XposedInstallerHooker {
                                 Utils.logD("reloadXposedProp done...");
                                 param.setResult(null);
                             } catch (IOException e) {
-                                Utils.logE("Could not read " + file.getPath(), e);
-                            } finally {
-                                if (is != null) {
-                                    try {
-                                        is.close();
-                                    } catch (IOException ignored) {
-                                    }
-                                }
+                                Utils.logE("Could not reloadXposedProp", e);
                             }
                         }
                     });

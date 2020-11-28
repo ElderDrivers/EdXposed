@@ -15,7 +15,6 @@ namespace edxp {
 
     static const std::string kPrimaryInstallerPkgName = "org.meowcat.edxposed.manager";
     static const std::string kLegacyInstallerPkgName = "de.robv.android.xposed.installer";
-    static const std::string kXposedPropPath = "/system/framework/edconfig.jar";
 
     class ConfigManager {
     public:
@@ -43,8 +42,6 @@ namespace edxp {
         inline auto IsHiddenAPIBypassEnabled() const { return hidden_api_bypass_enabled_; }
 
         inline auto GetInstallerPackageName() const { return installer_pkg_name_; }
-
-        inline auto GetXposedPropPath() const { return kXposedPropPath; }
 
         inline auto GetLibSandHookName() const { return kLibSandHookName; }
 

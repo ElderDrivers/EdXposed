@@ -8,29 +8,12 @@ apply plugin: 'com.android.library'
 static def calcSha256(file) {
     def md = MessageDigest.getInstance("SHA-256")
     file.eachByte 4096, { bytes, size ->
-        md.update(bytes, 0, size);
+        md.update(bytes, 0, size)
     }
     return md.digest().encodeHex()
 }
 
-// Values set here will be overriden by AppVeyor, feel free to modify during development.
-def buildVersionName = 'v0.5.0.8'
-def buildVersionCode = 233
-
-if (System.env.APPVEYOR_BUILD_VERSION != null) {
-    buildVersionName = "v${System.getenv('appveyor_build_version')}"
-}
-
-if (System.env.APPVEYOR_BUILD_NUMBER != null) {
-    // Split is necessary because PRs set the build number to "1234-something".
-    def parts = System.env.APPVEYOR_BUILD_NUMBER.split('-')
-    buildVersionCode = Integer.valueOf(parts[0])
-}
-
-version buildVersionName
-
 ext {
-    versionCode = buildVersionCode
     module_name = "EdXposed"
     jar_dest_dir = "${projectDir}/template_override/system/framework/"
     is_windows = OperatingSystem.current().isWindows()
@@ -60,8 +43,8 @@ android {
                 cppFlags "-std=c++17 -ffixed-x18 -Qunused-arguments -frtti -fomit-frame-pointer"
                 cFlags "-std=gnu99 -ffixed-x18 -Qunused-arguments -frtti -fomit-frame-pointer"
                 arguments "-DRIRU_MODULE_API_VERSION=$moduleMaxRiruApiVersion",
-                        "-DRIRU_MODULE_VERSION=$buildVersionCode",
-                        "-DRIRU_MODULE_VERSION_NAME:STRING=\"$buildVersionName\""
+                        "-DRIRU_MODULE_VERSION=$rootProject.ext.versionCode",
+                        "-DRIRU_MODULE_VERSION_NAME:STRING=\"$rootProject.ext.versionName\""
             }
         }
     }
@@ -124,18 +107,12 @@ afterEvaluate {
                 delete file(zipPathMagiskRelease)
                 doFirst {
                     copy {
-                        from "${projectDir}/tpl/edconfig.tpl"
-                        into templateFrameworkPath
-                        rename "edconfig.tpl", "edconfig.jar"
-                        expand(version: "$version", backend: "$backend")
-                    }
-                    copy {
                         from "${projectDir}/tpl/module.prop.tpl"
                         into templateRootPath
                         rename "module.prop.tpl", "module.prop"
                         expand(moduleId: "$magiskModuleId", backend: "$backendCapped",
-                                versionName: "$version" + " ($backend)",
-                                versionCode: "$versionCode", authorList: "$authorList")
+                                versionName: "$rootProject.ext.versionName" + " ($backend)",
+                                versionCode: "$rootProject.ext.versionCode", authorList: "$authorList")
                         filter(FixCrLfFilter.class, eol: FixCrLfFilter.CrLf.newInstance("lf"))
                     }
                     copy {
@@ -143,8 +120,8 @@ afterEvaluate {
                         into "$templateRootPath/riru"
                         rename "riru_module.prop.tpl", "module.prop.new"
                         expand(minApi: "$moduleMinRiruApiVersion",
-                                versionName: "$version" + " ($backend)",
-                                versionCode: "$versionCode", authorList: "$authorList")
+                                versionName: "$rootProject.ext.versionName" + " ($backend)",
+                                versionCode: "$rootProject.ext.versionCode", authorList: "$authorList")
                         filter(FixCrLfFilter.class, eol: FixCrLfFilter.CrLf.newInstance("lf"))
                     }
                 }
@@ -196,7 +173,7 @@ afterEvaluate {
 
             def zipTask = task("zip${backendCapped}${variantCapped}", type: Zip) {
                 dependsOn prepareMagiskFilesTask
-                archiveName "${module_name}-${backend}-${project.version}-${variantLowered}.zip"
+                archiveName "${module_name}-${backend}-${rootProject.ext.versionName}-${variantLowered}.zip"
                 destinationDir file("$projectDir/release")
                 from "$zipPathMagiskRelease"
             }
