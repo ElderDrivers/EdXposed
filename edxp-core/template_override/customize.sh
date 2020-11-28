@@ -267,7 +267,7 @@ else
   fi
 fi
 
-if [[ "$(pm path org.meowcat.edxposed.manager)" == "" && "$(pm path de.robv.android.xposed.installer)" == "" ]]; then
+if [[ "$(pm path org.meowcat.edxposed.manager)" == "" ]]; then
     NO_MANAGER=true
 fi
 

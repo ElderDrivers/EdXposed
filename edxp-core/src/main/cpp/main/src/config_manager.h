@@ -14,7 +14,6 @@
 namespace edxp {
 
     static const std::string kPrimaryInstallerPkgName = "org.meowcat.edxposed.manager";
-    static const std::string kLegacyInstallerPkgName = "de.robv.android.xposed.installer";
 
     class ConfigManager {
     public:

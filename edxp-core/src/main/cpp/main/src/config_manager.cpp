@@ -29,11 +29,6 @@ namespace edxp {
             LOGI("using installer %s", kPrimaryInstallerPkgName.c_str());
             return kPrimaryInstallerPkgName;
         }
-        data_test_path = data_path_prefix_ / kLegacyInstallerPkgName;
-        if (path_exists(data_test_path)) {
-            LOGI("using installer %s", kLegacyInstallerPkgName.c_str());
-            return kLegacyInstallerPkgName;
-        }
         LOGE("no supported installer app found, using default: %s",
              kPrimaryInstallerPkgName.c_str());
         return kPrimaryInstallerPkgName;
@@ -134,8 +129,7 @@ namespace edxp {
                  package_name.c_str());
             use_white_list = use_white_list_snapshot_;
         }
-        if (package_name == kPrimaryInstallerPkgName
-            || package_name == kLegacyInstallerPkgName) {
+        if (package_name == kPrimaryInstallerPkgName) {
             // always hook installer apps
             return true;
         }
