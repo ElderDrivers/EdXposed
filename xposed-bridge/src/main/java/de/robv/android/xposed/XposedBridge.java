@@ -754,7 +754,6 @@ public class BufferedRecordsTest {
     });
     assertTrue(
         "Unexpected message: " + e.getMessage(),
-        e.getMessage().contains(errorMessageFragment)
     );
   }
 
