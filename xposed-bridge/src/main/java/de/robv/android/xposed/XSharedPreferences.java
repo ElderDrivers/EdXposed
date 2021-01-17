@@ -62,8 +62,12 @@ public final class XSharedPreferences implements SharedPreferences {
                     WatchKey key;
                     try {
                         key = sWatcher.take();
-                    } catch (ClosedWatchServiceException | InterruptedException ignored) {
-                        break;
+                    } catch (ClosedWatchServiceException ignored) {
+                        if (BuildConfig.DEBUG) Log.d(TAG, "Watcher daemon thread finished");
+                        sWatcher = null;
+                        return;
+                    } catch (InterruptedException ignored) {
+                        return;
                     }
                     for (WatchEvent<?> event : key.pollEvents()) {
                         WatchEvent.Kind<?> kind = event.kind();
@@ -95,12 +99,6 @@ public final class XSharedPreferences implements SharedPreferences {
                     }
                     key.reset();
                 }
-                sWatcherKeyInstances.clear();
-                try {
-                    sWatcher.close();
-                } catch (IOException ignore) { }
-                sWatcher = null;
-                if (BuildConfig.DEBUG) Log.d(TAG, "Watcher daemon thread finished");
             }
         };
         sWatcherDaemon.setName(TAG + "-Daemon");
@@ -200,9 +198,9 @@ public final class XSharedPreferences implements SharedPreferences {
 
     private void tryUnregisterWatcher() {
         synchronized (sWatcherKeyInstances) {
-            if (sWatcherKeyInstances.containsKey(mWatchKey)) {
-                mWatchKey.cancel();
+            if (mWatchKey != null) {
                 sWatcherKeyInstances.remove(mWatchKey);
+                mWatchKey.cancel();
                 mWatchKey = null;
             }
             boolean atLeastOneValid = false;
@@ -499,9 +497,11 @@ public final class XSharedPreferences implements SharedPreferences {
      */
     @Override
     public void registerOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener listener) {
+        if (listener == null)
+            throw new IllegalArgumentException("listener cannot be null");
+
         synchronized(this) {
-            if (listener != null && !mListeners.containsKey(listener)) {
-                mListeners.put(listener, sContent);
+            if (mListeners.put(listener, sContent) == null) {
                 tryRegisterWatcher();
             }
         }
@@ -516,11 +516,8 @@ public final class XSharedPreferences implements SharedPreferences {
     @Override
     public void unregisterOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener listener) {
         synchronized(this) {
-            if (mListeners.containsKey(listener)) {
-                mListeners.remove(listener);
-                if (mListeners.size() == 0) {
-                    tryUnregisterWatcher();
-                }
+            if (mListeners.remove(listener) != null && mListeners.isEmpty()) {
+                tryUnregisterWatcher();
             }
         }
     }
