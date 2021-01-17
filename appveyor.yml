@@ -18,10 +18,8 @@ install:
   - set PATH=%PATH%;C:\android-sdk-windows\ndk-bundle;C:\android-sdk-windows\build-tools\28.0.3
 
 build_script:
-  - gradlew.bat :edxp-core:zipYahfaRelease
-  - gradlew.bat :edxp-core:zipSandhookRelease
-  - gradlew.bat :edxp-core:zipYahfaDebug
-  - gradlew.bat :edxp-core:zipSandhookDebug
+  - gradlew.bat :edxp-core:zipRelease
+  - gradlew.bat :edxp-core:zipDebug
 
 artifacts:
   - path: 'edxp-core\release\**\*.zip'
