@@ -64,7 +64,7 @@ afterEvaluate {
                     "${buildDir}/intermediates/dex/${variantNameLowered}/minify${variantNameCapped}WithR8" :
                     "${buildDir}/intermediates/dex/${variantNameLowered}/mergeDex${variantNameCapped}"
             from (dexOutPath){
-                rename("classes.dex", "edxp.dex")
+                rename("classes.dex", "yahfa.dex")
             }
             destinationDir file(zipPathMagiskReleasePath + "system/framework/")
             outputs.upToDateWhen { false }

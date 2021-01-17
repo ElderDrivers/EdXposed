@@ -11,7 +11,7 @@ check_riru_version() {
     ui_print "${POUNDS}"
     ui_print "! ${LANG_UTIL_ERR_RIRU_NOT_FOUND_1}"
     ui_print "! ${LANG_UTIL_ERR_RIRU_NOT_FOUND_2}"
-    [[ ${BOOTMODE} == true ]] && am start -a android.intent.action.VIEW -d https://github.com/RikkaApps/Riru/releases
+    [[ ${BOOTMODE} == true ]] && am start -a android.intent.action.VIEW -d https://github.com/RikkaApps/Riru/releases >/dev/null
     abortC   "${POUNDS}"
   fi
   RIRU_API_VERSION=$(cat "$RIRU_PATH/api_version.new") || RIRU_API_VERSION=$(cat "$RIRU_PATH/api_version") || RIRU_API_VERSION=0
@@ -21,7 +21,7 @@ check_riru_version() {
     ui_print "${POUNDS}"
     ui_print "! Riru $RIRU_MIN_VERSION_NAME ${LANG_UTIL_ERR_RIRU_LOW_1}"
     ui_print "! ${LANG_UTIL_ERR_RIRU_LOW_2}"
-    [[ ${BOOTMODE} == true ]] && am start -a android.intent.action.VIEW -d https://github.com/RikkaApps/Riru/releases
+    [[ ${BOOTMODE} == true ]] && am start -a android.intent.action.VIEW -d https://github.com/RikkaApps/Riru/releases >/dev/null
     abortC   "${POUNDS}"
   fi
 }
@@ -34,47 +34,19 @@ check_magisk_version() {
   fi
 }
 
-require_yahfa() {
-    ui_print "${POUNDS}"
-    ui_print "! ${LANG_UTIL_ERR_REQUIRE_YAHFA_1}"
-    ui_print "! ${LANG_UTIL_ERR_REQUIRE_YAHFA_2}"
-    ui_print "! ${LANG_UTIL_ERR_REQUIRE_YAHFA_3}"
-    abortC   "${POUNDS}"
-}
-
-duplicate_installation() {
-    touch /data/adb/edxp/keep_data
-    ui_print "${POUNDS}"
-    ui_print "! ${LANG_UTIL_ERR_DUPINST_1}"
-    ui_print "! ${LANG_UTIL_ERR_DUPINST_2} EdXposed (${1}) ${LANG_UTIL_ERR_DUPINST_3}"
-    abortC   "${POUNDS}"
-}
-
 require_new_android() {
     ui_print "${POUNDS}"
     ui_print "! ${LANG_UTIL_ERR_ANDROID_UNSUPPORT_1} ${1} ${LANG_UTIL_ERR_ANDROID_UNSUPPORT_2}"
     ui_print "! ${LANG_UTIL_ERR_ANDROID_UNSUPPORT_3}"
-    [[ ${BOOTMODE} == true ]] && am start -a android.intent.action.VIEW -d https://github.com/ElderDrivers/EdXposed/wiki/Available-Android-versions
+    [[ ${BOOTMODE} == true ]] && am start -a android.intent.action.VIEW -d https://github.com/ElderDrivers/EdXposed/wiki/Available-Android-versions >/dev/null
     abortC   "${POUNDS}"
 }
 
 edxp_check_architecture() {
-    if [[ "${MODID}" == "riru_edxposed_sandhook" ]]; then
-        VARIANT="SandHook"
-        [[ -d "${MODPATH}/../../${MODULES_PATH}/riru_edxposed" ]] && duplicate_installation "YAHFA"
-    else
-        VARIANT="YAHFA"
-        [[ -d "${MODPATH}/../../${MODULES_PATH}/riru_edxposed_sandhook" ]] && duplicate_installation "SandHook"
-    fi
     if [[ "${ARCH}" != "arm" && "${ARCH}" != "arm64" && "${ARCH}" != "x86" && "${ARCH}" != "x64" ]]; then
         abortC "! ${LANG_UTIL_ERR_PLATFORM_UNSUPPORT}: ${ARCH}"
     else
         ui_print "- ${LANG_UTIL_PLATFORM}: ${ARCH}"
-        if [[ "${ARCH}" == "x86" || "${ARCH}" == "x64" ]]; then
-            if [[ "${VARIANT}" == "SandHook" ]]; then
-                require_yahfa
-            fi
-        fi
     fi
 }
 

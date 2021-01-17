@@ -90,16 +90,10 @@ LANG_UTIL_ERR_RIRU_NOT_FOUND_1="is not installed"
 LANG_UTIL_ERR_RIRU_NOT_FOUND_2="Please install Riru from Magisk Manager"
 LANG_UTIL_ERR_RIRU_LOW_1="or above is required"
 LANG_UTIL_ERR_RIRU_LOW_2="Please upgrade Riru from Magisk Manager"
-LANG_UTIL_ERR_REQUIRE_YAHFA_1="Architecture x86 or x86_64 detected"
-LANG_UTIL_ERR_REQUIRE_YAHFA_2="Only YAHFA variant supports x86 or x86_64 architecture devices"
-LANG_UTIL_ERR_REQUIRE_YAHFA_3="You can download from 'Magisk Manager' or 'EdXposed Manager'"
 LANG_UTIL_ERR_ANDROID_UNSUPPORT_1="Unsupported Android version"
 LANG_UTIL_ERR_ANDROID_UNSUPPORT_2="(below Oreo)"
 LANG_UTIL_ERR_ANDROID_UNSUPPORT_3="Learn more from our GitHub Wiki"
 LANG_UTIL_ERR_PLATFORM_UNSUPPORT="Unsupported platform"
-LANG_UTIL_ERR_DUPINST_1="Duplicate installation is now allowed"
-LANG_UTIL_ERR_DUPINST_2="Remove"
-LANG_UTIL_ERR_DUPINST_3="and reboot to install again"
 
 # Load lang
 if [[ ${BOOTMODE} == true ]]; then
@@ -136,6 +130,9 @@ edxp_check_architecture
 ui_print "- ${LANG_CUST_INST_EXT_FILES}"
 
 # extract module files
+rm -rf "${MODPATH}/../../${MODULES_PATH}/riru_edxposed_sandhook"
+mkdir -p /data/adb/edxp || abortC "! ${LANG_CUST_ERR_CONF_CREATE}"
+
 extract "${ZIPFILE}" 'EdXposed.apk' "${MODPATH}"
 extract "${ZIPFILE}" 'module.prop' "${MODPATH}"
 extract "${ZIPFILE}" 'system.prop' "${MODPATH}"
@@ -147,7 +144,8 @@ extract "${ZIPFILE}" 'system/framework/edconfig.jar' "${MODPATH}"
 extract "${ZIPFILE}" 'system/framework/eddalvikdx.dex' "${MODPATH}"
 extract "${ZIPFILE}" 'system/framework/eddexmaker.dex' "${MODPATH}"
 extract "${ZIPFILE}" 'system/framework/edservice.dex' "${MODPATH}"
-extract "${ZIPFILE}" 'system/framework/edxp.dex' "${MODPATH}"
+extract "${ZIPFILE}" 'system/framework/sandhook.dex' "/data/adb/edxp" true
+extract "${ZIPFILE}" 'system/framework/yahfa.dex' "/data/adb/edxp" true
 
 if [ "$ARCH" = "x86" ] || [ "$ARCH" = "x64" ]; then
   ui_print "- ${LANG_CUST_INST_EXT_LIB_X86}"
@@ -162,16 +160,12 @@ if [ "$ARCH" = "x86" ] || [ "$ARCH" = "x64" ]; then
 else
   ui_print "- ${LANG_CUST_INST_EXT_LIB_ARM}"
   extract "$ZIPFILE" 'system/lib/libriru_edxp.so' "${MODPATH}"
-  if [[ "${VARIANT}" == "SandHook" ]]; then
-    extract "$ZIPFILE" 'system/lib/libsandhook.edxp.so' "${MODPATH}"
-  fi
+  extract "$ZIPFILE" 'system/lib/libsandhook.edxp.so' "${MODPATH}"
 
   if [ "$IS64BIT" = true ]; then
     ui_print "- ${LANG_CUST_INST_EXT_LIB_ARM64}"
     extract "$ZIPFILE" 'system/lib64/libriru_edxp.so' "${MODPATH}"
-    if [[ "${VARIANT}" == "SandHook" ]]; then
-     extract "$ZIPFILE" 'system/lib64/libsandhook.edxp.so' "${MODPATH}"
-    fi
+    extract "$ZIPFILE" 'system/lib64/libsandhook.edxp.so' "${MODPATH}"
   fi
 fi
 
@@ -181,7 +175,7 @@ fi
 
 if [[ ${BOOTMODE} == true && ${NO_MANAGER} == true ]]; then
     ui_print "- ${LANG_CUST_INST_STUB}"
-    cp "${MODPATH}/EdXposed.apk" "/data/local/tmp/EdXposed.apk"
+    cp -f "${MODPATH}/EdXposed.apk" "/data/local/tmp/EdXposed.apk"
     LOCAL_PATH_INFO=$(ls -ldZ "/data/local/tmp")
     LOCAL_PATH_OWNER=$(echo "${LOCAL_PATH_INFO}" | awk -F " " '{print $3":"$4}')
     LOCAL_PATH_CONTEXT=$(echo "${LOCAL_PATH_INFO}" | awk -F " " '{print $5}')
@@ -199,7 +193,6 @@ else
   MISC_RAND=$(tr -cd 'A-Za-z0-9' < /dev/urandom | head -c16)
   MISC_PATH="edxp_${MISC_RAND}"
   ui_print "  - ${LANG_CUST_INST_CONF_NEW} ${MISC_RAND}"
-  mkdir -p /data/adb/edxp || abortC "! ${LANG_CUST_ERR_CONF_CREATE}"
   echo "$MISC_PATH" > /data/adb/edxp/misc_path || abortC "! ${LANG_CUST_ERR_CONF_STORE}"
   if [[ -d /data/user_de/0/org.meowcat.edxposed.manager/conf/ ]]; then
     mkdir -p /data/misc/$MISC_PATH/0/conf
@@ -211,21 +204,23 @@ touch /data/adb/edxp/new_install || abortC "! ${LANG_CUST_ERR_CONF_FIRST}"
 set_perm_recursive /data/adb/edxp root root 0700 0600 "u:object_r:magisk_file:s0" || abortC "! ${LANG_CUST_ERR_PERM}"
 mkdir -p /data/misc/$MISC_PATH || abortC "! ${LANG_CUST_ERR_CONF_CREATE}"
 set_perm /data/misc/$MISC_PATH root root 0771 "u:object_r:magisk_file:s0" || abortC "! ${LANG_CUST_ERR_PERM}"
-echo "[[ -f /data/adb/edxp/keep_data ]] || rm -rf /data/misc/$MISC_PATH" >> "${MODPATH}/uninstall.sh" || abortC "! ${LANG_CUST_ERR_CONF_UNINST}"
+echo "rm -rf /data/misc/$MISC_PATH" >> "${MODPATH}/uninstall.sh" || abortC "! ${LANG_CUST_ERR_CONF_UNINST}"
 echo "[[ -f /data/adb/edxp/new_install ]] || rm -rf /data/adb/edxp" >> "${MODPATH}/uninstall.sh" || abortC "! ${LANG_CUST_ERR_CONF_UNINST}"
+
+if [[ "${ARCH}" == "x86" || "${ARCH}" == "x64" ]]; then
+  touch /data/misc/$MISC_PATH/0/conf/disable_sandhook || abortC "! ${LANG_CUST_ERR_CONF_CREATE}"
+fi
 
 ui_print "- ${LANG_CUST_INST_COPY_LIB}"
 
 rm -rf "/data/misc/$MISC_PATH/framework"
 mv "${MODPATH}/system/framework" "/data/misc/$MISC_PATH/framework"
 
-if [[ "${VARIANT}" == "SandHook" ]]; then
-  mkdir -p "/data/misc/$MISC_PATH/framework/lib"
-  mv "${MODPATH}/system/lib/libsandhook.edxp.so" "/data/misc/$MISC_PATH/framework/lib/libsandhook.edxp.so"
-  if [ "$IS64BIT" = true ]; then
-    mkdir -p "/data/misc/$MISC_PATH/framework/lib64"
-    mv "${MODPATH}/system/lib64/libsandhook.edxp.so" "/data/misc/$MISC_PATH/framework/lib64/libsandhook.edxp.so"
-  fi
+mkdir -p "/data/misc/$MISC_PATH/framework/lib"
+mv "${MODPATH}/system/lib/libsandhook.edxp.so" "/data/misc/$MISC_PATH/framework/lib/libsandhook.edxp.so"
+if [ "$IS64BIT" = true ]; then
+  mkdir -p "/data/misc/$MISC_PATH/framework/lib64"
+  mv "${MODPATH}/system/lib64/libsandhook.edxp.so" "/data/misc/$MISC_PATH/framework/lib64/libsandhook.edxp.so"
 fi
 set_perm_recursive /data/misc/$MISC_PATH/framework root root 0755 0644 "u:object_r:magisk_file:s0" || abortC "! ${LANG_CUST_ERR_PERM}"
 
@@ -261,8 +256,6 @@ rm -f "${RIRU_TARGET}/module.prop"
 cp "${MODPATH}/module.prop" "${RIRU_TARGET}/module.prop" || abortC "! ${LANG_CUST_ERR_EXTRA_CREATE} ${RIRU_TARGET}/module.prop"
 
 set_perm "$RIRU_TARGET/module.prop" 0 0 0600 $RIRU_SECONTEXT || abortC "! ${LANG_CUST_ERR_PERM}"
-
-rm -f /data/adb/edxp/keep_data
 
 set_perm_recursive "${MODPATH}" 0 0 0755 0644
 ui_print "- ${LANG_CUST_INST_DONE} EdXposed ${VERSION}!"

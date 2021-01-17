@@ -171,6 +171,13 @@ if [[ ! -z "${MISC_PATH}" ]]; then
     chcon -R u:object_r:magisk_file:s0 "${BASE_PATH}"
     chmod 771 "${BASE_PATH}"
     chmod 777 "${BASE_PATH}/cache"
+    VARIANT="yahfa"
+    if [[ -f "${BASE_PATH}/0/conf/use_sandhook" ]]; then
+        if [[ ! -f "${BASE_PATH}/0/conf/disable_sandhook" ]]; then
+            VARIANT="sandhook"
+        fi
+    fi
+    [[ -f "/data/adb/edxp/${VARIANT}.dex" ]] && cp -f "/data/adb/edxp/${VARIANT}.dex" "${BASE_PATH}/framework/edxp.dex"
 fi
+
 rm -f /data/adb/edxp/new_install
-rm -f /data/adb/edxp/keep_data
