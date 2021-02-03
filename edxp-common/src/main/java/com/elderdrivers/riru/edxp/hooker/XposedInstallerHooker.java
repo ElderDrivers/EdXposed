@@ -58,6 +58,10 @@ public class XposedInstallerHooker {
                     XC_MethodReplacement.returnConstant(ConfigManager.getBaseConfigPath() + "/")
             );
 
+            XposedHelpers.findAndHookMethod(CONSTANTS_CLASS, classLoader, "isSELinuxEnforced",
+                    XC_MethodReplacement.returnConstant(ConfigManager.isSELinuxEnforced())
+            );
+
         } catch (Throwable t) {
             Utils.logE("Could not hook EdXposed Manager", t);
         }

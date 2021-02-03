@@ -162,6 +162,7 @@ namespace edxp {
             resources_hook_enabled_(path_exists(GetConfigPath("enable_resources"))),
             white_list_(GetAppList(GetConfigPath("whitelist/"))),
             black_list_(GetAppList(GetConfigPath("blacklist/"))),
+            selinux_enforcing_(ReadInt("/sys/fs/selinux/enforce") == 1),
             modules_list_(GetModuleList()),
             last_write_time_(GetLastWriteTime()) {
         // use_white_list snapshot
@@ -193,6 +194,19 @@ namespace edxp {
                       std::ostream_iterator<std::string>(join, "\n"));
             return join.str();
         })().c_str());
+    }
+
+    int ConfigManager::ReadInt(const fs::path &dir) {
+        if (!path_exists(dir)) {
+            return 0;
+        }
+        std::ifstream ifs(dir);
+        if (!ifs.good()) {
+            return 0;
+        }
+        int result;
+        ifs >> result;
+        return result;
     }
 
     auto ConfigManager::GetModuleList() -> std::remove_const_t<decltype(modules_list_)> {

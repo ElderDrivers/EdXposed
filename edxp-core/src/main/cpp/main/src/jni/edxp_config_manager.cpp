@@ -19,6 +19,10 @@ namespace edxp {
         return (jboolean) ConfigManager::GetInstance()->IsDeoptBootImageEnabled();
     }
 
+    static jboolean ConfigManager_isSELinuxEnforced(JNI_START) {
+        return (jboolean) ConfigManager::GetInstance()->IsSELinuxEnforced();
+    }
+
     static jboolean ConfigManager_isNoModuleLogEnabled(JNI_START) {
         return (jboolean) ConfigManager::GetInstance()->IsNoModuleLogEnabled();
     }
@@ -75,6 +79,7 @@ namespace edxp {
             NATIVE_METHOD(ConfigManager, isResourcesHookEnabled, "()Z"),
             NATIVE_METHOD(ConfigManager, isDeoptBootImageEnabled, "()Z"),
             NATIVE_METHOD(ConfigManager, isNoModuleLogEnabled, "()Z"),
+            NATIVE_METHOD(ConfigManager, isSELinuxEnforced, "()Z"),
             NATIVE_METHOD(ConfigManager, getInstallerPackageName, "()Ljava/lang/String;"),
             NATIVE_METHOD(ConfigManager, getLibSandHookName, "()Ljava/lang/String;"),
             NATIVE_METHOD(ConfigManager, getDataPathPrefix, "()Ljava/lang/String;"),

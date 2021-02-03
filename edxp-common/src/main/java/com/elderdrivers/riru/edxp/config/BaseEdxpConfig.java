@@ -30,6 +30,11 @@ public class BaseEdxpConfig implements EdxpConfig {
     }
 
     @Override
+    public boolean isSELinuxEnforced() {
+        return ConfigManager.isSELinuxEnforced();
+    }
+
+    @Override
     public boolean isNoModuleLogEnabled() {
         return ConfigManager.isNoModuleLogEnabled();
     }

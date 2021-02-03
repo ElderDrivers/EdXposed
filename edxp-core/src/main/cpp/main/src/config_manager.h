@@ -60,6 +60,8 @@ namespace edxp {
         inline const auto &GetInstallerPackageName() const { return installer_pkg_name_; }
 
         inline const auto &GetDataPathPrefix() const { return data_path_prefix_; }
+        
+        inline const auto &IsSELinuxEnforced() const { return selinux_enforcing_; }
 
         inline static const auto &GetMiscPath() { return misc_path_; }
 
@@ -124,6 +126,7 @@ namespace edxp {
         const bool deopt_boot_image_enabled_ = false;
         const bool no_module_log_enabled_ = false;
         const bool resources_hook_enabled_ = false;
+        const bool selinux_enforcing_ = false;
         // snapshot at boot
         const std::unordered_set<std::string> white_list_;
         const std::unordered_set<std::string> black_list_;
@@ -151,6 +154,8 @@ namespace edxp {
         friend std::unique_ptr<ConfigManager> std::make_unique<ConfigManager>(uid_t &, bool &&);
 
         std::filesystem::path RetrieveBaseConfigPath() const;
+
+        int ReadInt(const std::filesystem::path &dir);
     };
 
 } // namespace edxp

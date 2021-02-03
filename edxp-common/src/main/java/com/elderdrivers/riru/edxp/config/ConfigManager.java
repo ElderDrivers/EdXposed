@@ -35,6 +35,8 @@ public class ConfigManager {
 
     public static native boolean isDeoptBootImageEnabled();
 
+    public static native boolean isSELinuxEnforced();
+
     public static native String getInstallerPackageName();
 
     public static native String getXposedPropPath();
