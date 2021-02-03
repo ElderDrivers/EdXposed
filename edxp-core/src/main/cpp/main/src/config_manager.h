@@ -18,7 +18,6 @@ namespace edxp {
     class ConfigManager {
     private:
         inline static const auto kPrimaryInstallerPkgName = "org.meowcat.edxposed.manager"s;
-        inline static const auto kXposedPropName = "edconfig.jar"s;
         inline static const std::vector<std::string> kXposedInjectDexPath = {
                 "edxp.dex",
                 "eddalvikdx.dex",
@@ -78,8 +77,6 @@ namespace edxp {
             else
                 return GetFrameworkPath("lib/libsandhook.edxp.so");
         }
-
-        inline auto GetXposedPropPath() const { return GetFrameworkPath(kXposedPropName); }
 
         inline auto GetConfigPath(const std::string &suffix = {}) const {
             return base_config_path_ / "conf" / suffix;

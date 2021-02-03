@@ -173,7 +173,7 @@ else
 fi
 
 if [[ ${BOOTMODE} == true ]]; then
-  [[ "$(pm path org.meowcat.edxposed.manager)" == "" && "$(pm path de.robv.android.xposed.installer)" == "" ]] && NO_MANAGER=true
+  [[ "$(pm path org.meowcat.edxposed.manager)" == "" ]] && NO_MANAGER=true
 fi
 
 if [[ ${BOOTMODE} == true && ${NO_MANAGER} == true ]]; then

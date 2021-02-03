@@ -13,24 +13,7 @@ static def calcSha256(file) {
     return md.digest().encodeHex()
 }
 
-// Values set here will be overriden by AppVeyor, feel free to modify during development.
-def buildVersionName = 'v0.5.2.0'
-def buildVersionCode = 233
-
-if (System.env.APPVEYOR_BUILD_VERSION != null) {
-    buildVersionName = "v${System.getenv('appveyor_build_version')}"
-}
-
-if (System.env.APPVEYOR_BUILD_NUMBER != null) {
-    // Split is necessary because PRs set the build number to "1234-something".
-    def parts = System.env.APPVEYOR_BUILD_NUMBER.split('-')
-    buildVersionCode = Integer.valueOf(parts[0])
-}
-
-version buildVersionName
-
 ext {
-    versionCode = buildVersionCode
     module_name = "EdXposed"
     jar_dest_dir = "${projectDir}/template_override/system/framework/"
     is_windows = OperatingSystem.current().isWindows()
@@ -70,8 +53,8 @@ android {
                 cppFlags "-std=c++17 -ffixed-x18 -Qunused-arguments -frtti -fomit-frame-pointer"
                 cFlags "-std=gnu99 -ffixed-x18 -Qunused-arguments -frtti -fomit-frame-pointer"
                 arguments "-DRIRU_MODULE_API_VERSION=$moduleMaxRiruApiVersion",
-                        "-DRIRU_MODULE_VERSION=$buildVersionCode",
-                        "-DRIRU_MODULE_VERSION_NAME:STRING=\"$buildVersionName\""
+                        "-DRIRU_MODULE_VERSION=$rootProject.ext.versionCode",
+                        "-DRIRU_MODULE_VERSION_NAME:STRING=\"$rootProject.ext.versionName\""
             }
         }
     }
@@ -130,18 +113,12 @@ afterEvaluate {
             dependsOn prepareJarsTask, "assemble${variantCapped}"
             doFirst {
                 copy {
-                    from "${projectDir}/tpl/edconfig.tpl"
-                    into templateFrameworkPath
-                    rename "edconfig.tpl", "edconfig.jar"
-                    expand(version: "$version", apiCode: "$apiCode")
-                }
-                copy {
                     from "${projectDir}/tpl/module.prop.tpl"
                     into templateRootPath
                     rename "module.prop.tpl", "module.prop"
                     expand(moduleId: module_id,
-                            versionName: "$version",
-                            versionCode: "$versionCode", authorList: authors,
+                            versionName: "$rootProject.ext.versionName",
+                            versionCode: "$rootProject.ext.versionCode", authorList: authors,
                             apiCode: "$apiCode", minApi: "$moduleMinRiruApiVersion")
                     filter(FixCrLfFilter.class, eol: FixCrLfFilter.CrLf.newInstance("lf"))
                 }
@@ -198,7 +175,7 @@ afterEvaluate {
 
         def zipTask = task("zip${variantCapped}", type: Zip) {
             dependsOn prepareMagiskFilesTask
-            archiveName "${module_name}-${project.version}-${variantLowered}.zip"
+            archiveName "${module_name}-${rootProject.ext.versionName}-${variantLowered}.zip"
             destinationDir file("$projectDir/release")
             from "$zipPathMagiskReleasePath"
         }
@@ -207,7 +184,7 @@ afterEvaluate {
             dependsOn zipTask
             workingDir "${projectDir}/release"
             def commands = [android.adbExecutable, "push",
-                            "${module_name}-${project.version}-${variantLowered}.zip",
+                            "${module_name}-${rootProject.ext.versionName}-${variantLowered}.zip",
                             "/data/local/tmp/"]
             if (is_windows) {
                 commandLine 'cmd', '/c', commands.join(" ")
@@ -219,7 +196,7 @@ afterEvaluate {
             dependsOn tasks.getByPath("push${variantCapped}")
             workingDir "${projectDir}/release"
             def commands = [android.adbExecutable, "shell", "su", "-c",
-                            "magisk --install-module /data/local/tmp/${module_name}-${project.version}-${variantLowered}.zip"]
+                            "magisk --install-module /data/local/tmp/${module_name}-${rootProject.ext.versionName}-${variantLowered}.zip"]
             if (is_windows) {
                 commandLine 'cmd', '/c', commands.join(" ")
             } else {

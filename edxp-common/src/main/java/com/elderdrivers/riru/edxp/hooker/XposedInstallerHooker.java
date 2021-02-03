@@ -8,13 +8,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.elderdrivers.riru.edxp.common.BuildConfig;
 import com.elderdrivers.riru.edxp.config.ConfigManager;
 import com.elderdrivers.riru.edxp.config.EdXpConfigGlobal;
+import com.elderdrivers.riru.edxp.core.EdxpImpl;
+import com.elderdrivers.riru.edxp.core.Main;
 import com.elderdrivers.riru.edxp.util.Utils;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XC_MethodReplacement;
@@ -23,7 +24,7 @@ import de.robv.android.xposed.XposedHelpers;
 
 public class XposedInstallerHooker {
 
-    private static final String LEGACY_INSTALLER_PACKAGE_NAME = "de.robv.android.xposed.installer";
+    private static final String CONSTANTS_CLASS = "org.meowcat.edxposed.manager.Constants";
 
     public static void hookXposedInstaller(final ClassLoader classLoader) {
         // Deopt manager. It will not throw exception.
@@ -33,78 +34,32 @@ public class XposedInstallerHooker {
         deoptMethod(classLoader, "org.meowcat.edxposed.manager.util.ModuleUtil", "updateModulesList", boolean.class, View.class);
 
         try {
-            final String xposedAppClass = LEGACY_INSTALLER_PACKAGE_NAME + ".XposedApp";
-            final Class InstallZipUtil = XposedHelpers.findClass(LEGACY_INSTALLER_PACKAGE_NAME
-                    + ".util.InstallZipUtil", classLoader);
-            XposedHelpers.findAndHookMethod(xposedAppClass, classLoader, "getActiveXposedVersion",
+            String variant = "Unknown";
+            switch (Main.getEdxpVariant()) {
+                case EdxpImpl.NONE:
+                    break;
+                case EdxpImpl.YAHFA:
+                    variant = "YAHFA";
+                    break;
+                case EdxpImpl.SANDHOOK:
+                    variant = "SandHook";
+                    break;
+            }
+
+            XposedHelpers.findAndHookMethod(CONSTANTS_CLASS, classLoader, "getActiveXposedVersion",
                     XC_MethodReplacement.returnConstant(XposedBridge.getXposedVersion())
             );
-            XposedHelpers.findAndHookMethod(xposedAppClass, classLoader,
-                    "reloadXposedProp", new XC_MethodHook() {
-                        @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            Utils.logD("before reloadXposedProp...");
-                            final String propFieldName = "mXposedProp";
-                            final Object thisObject = param.thisObject;
-                            if (thisObject == null) {
-                                return;
-                            }
-                            if (XposedHelpers.getObjectField(thisObject, propFieldName) != null) {
-                                param.setResult(null);
-                                Utils.logD("reloadXposedProp already done, skip...");
-                                return;
-                            }
-                            File file = new File(ConfigManager.getXposedPropPath());
-                            FileInputStream is = null;
-                            try {
-                                is = new FileInputStream(file);
-                                Object props = XposedHelpers.callStaticMethod(InstallZipUtil,
-                                        "parseXposedProp", is);
-                                synchronized (thisObject) {
-                                    XposedHelpers.setObjectField(thisObject, propFieldName, props);
-                                }
-                                Utils.logD("reloadXposedProp done...");
-                                param.setResult(null);
-                            } catch (IOException e) {
-                                Utils.logE("Could not read " + file.getPath(), e);
-                            } finally {
-                                if (is != null) {
-                                    try {
-                                        is.close();
-                                    } catch (IOException ignored) {
-                                    }
-                                }
-                            }
-                        }
-                    });
-            XposedHelpers.findAndHookMethod("org.meowcat.edxposed.manager.XposedApp", classLoader, "onCreate", new XC_MethodHook() {
-                @Override
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    XposedHelpers.setStaticObjectField(param.thisObject.getClass(), "BASE_DIR", ConfigManager.getBaseConfigPath() + "/");
-                    XposedHelpers.setStaticObjectField(param.thisObject.getClass(), "ENABLED_MODULES_LIST_FILE", ConfigManager.getConfigPath("enabled_modules.list"));
-                }
-            });
-            XposedHelpers.findAndHookMethod("org.meowcat.edxposed.manager.util.ModuleUtil", classLoader, "updateModulesList", boolean.class, View.class, new XC_MethodHook() {
-                @Override
-                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    final Object thisObject = param.thisObject;
-                    synchronized (thisObject) {
-                        XposedHelpers.setStaticObjectField(param.thisObject.getClass(), "MODULES_LIST_FILE", ConfigManager.getConfigPath("modules.list"));
-                    }
-                }
-            });
 
-            XposedHelpers.findAndHookMethod("org.meowcat.edxposed.manager.StatusInstallerFragment", classLoader, "getCanonicalFile", File.class, new XC_MethodHook() {
-                @Override
-                protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                    File arg = (File)param.args[0];
-                    if(arg.equals(new File(AndroidAppHelper.currentApplicationInfo().deviceProtectedDataDir))) {
-                        param.args[0] = new File(ConfigManager.getBaseConfigPath());
-                    }
-                }
-            });
+            XposedHelpers.findAndHookMethod(CONSTANTS_CLASS, classLoader, "getInstalledXposedVersion",
+                    XC_MethodReplacement.returnConstant(BuildConfig.VERSION_NAME + "_" + BuildConfig.VERSION_CODE + " (" + variant + ")")
+            );
+
+            XposedHelpers.findAndHookMethod(CONSTANTS_CLASS, classLoader, "getBaseDir",
+                    XC_MethodReplacement.returnConstant(ConfigManager.getBaseConfigPath() + "/")
+            );
+
         } catch (Throwable t) {
-            Utils.logE("Could not hook Xposed Installer", t);
+            Utils.logE("Could not hook EdXposed Manager", t);
         }
     }
 

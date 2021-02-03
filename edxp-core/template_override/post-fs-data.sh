@@ -37,7 +37,6 @@ MAGISK_VERSION=$(magisk -v)
 MAGISK_VERCODE=$(magisk -V)
 
 #EDXP_MANAGER="org.meowcat.edxposed.manager"
-#XP_INSTALLER="de.robv.android.xposed.installer"
 #PATH_PREFIX="/data/user_de/0/"
 #PATH_PREFIX_LEGACY="/data/user/0/"
 
@@ -103,7 +102,6 @@ start_log_cather () {
     fi
     touch "${LOG_FILE}"
     touch "${PID_FILE}"
-    echo "--------- beginning of head">>"${LOG_FILE}"
     echo "EdXposed Log">>"${LOG_FILE}"
     echo "Powered by Log Catcher">>"${LOG_FILE}"
     echo "QQ support group: 855219808">>"${LOG_FILE}"
@@ -132,10 +130,7 @@ start_log_cather () {
 }
 
 # install stub if manager not installed
-if [[ "$(pm path org.meowcat.edxposed.manager 2>&1)" == "" && "$(pm path de.robv.android.xposed.installer 2>&1)" == "" ]]; then
-    NO_MANAGER=true
-fi
-if [[ ${NO_MANAGER} == true ]]; then
+if [[ "$(pm path org.meowcat.edxposed.manager 2>&1)" == "" ]]; then
     cp "${MODDIR}/EdXposed.apk" "/data/local/tmp/EdXposed.apk"
     LOCAL_PATH_INFO=$(ls -ldZ "/data/local/tmp")
     LOCAL_PATH_OWNER=$(echo "${LOCAL_PATH_INFO}" | awk -F " " '{print $3":"$4}')
