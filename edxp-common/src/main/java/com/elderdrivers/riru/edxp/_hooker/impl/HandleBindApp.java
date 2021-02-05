@@ -1,6 +1,7 @@
 package com.elderdrivers.riru.edxp._hooker.impl;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ActivityThread;
 import android.app.ContextImpl;
 import android.app.LoadedApk;
@@ -9,6 +10,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.res.CompatibilityInfo;
 import android.content.res.XResources;
+import android.preference.PreferenceManager;
 
 import com.elderdrivers.riru.edxp.config.ConfigManager;
 import com.elderdrivers.riru.edxp.util.Hookers;
@@ -22,6 +24,7 @@ import java.nio.file.Path;
 import java.util.Map;
 
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XC_MethodReplacement;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.XposedInit;
@@ -94,6 +97,17 @@ public class HandleBindApp extends XC_MethodHook {
                         }
                     }
                 });
+                XposedHelpers.findAndHookConstructor(PreferenceManager.class, Activity.class, int.class, new XC_MethodHook() {
+                    @SuppressWarnings("deprecation")
+                    @SuppressLint("WorldReadableFiles")
+                    @Override
+                    protected void beforeHookedMethod(MethodHookParam param) {
+                        XposedHelpers.setIntField(param.thisObject, "mSharedPreferencesMode", Context.MODE_WORLD_READABLE);
+                    }
+                });
+                //noinspection deprecation
+                XposedHelpers.findAndHookMethod(PreferenceManager.class, "getDefaultSharedPreferencesMode",
+                        XC_MethodReplacement.returnConstant(Context.MODE_WORLD_READABLE));
                 final boolean migratePrefs = xposedmigrateprefs;
                 XposedHelpers.findAndHookMethod(ContextImpl.class, "getPreferencesDir", new XC_MethodHook() {
                     @Override
