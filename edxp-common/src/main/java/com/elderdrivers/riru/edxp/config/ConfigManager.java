@@ -12,20 +12,20 @@ public class ConfigManager {
 
     private static final HashMap<String, Boolean> compatModeCache = new HashMap<>();
 
-    public static boolean shouldUseCompatMode(String packageName) {
-        Boolean result;
-        if (compatModeCache.containsKey(packageName)
-                && (result = compatModeCache.get(packageName)) != null) {
-            return result;
-        }
-        result = isFileExists(getConfigPath("compatlist/" + packageName));
-        compatModeCache.put(packageName, result);
-        return result;
-    }
+//    public static boolean shouldUseCompatMode(String packageName) {
+//        Boolean result;
+//        if (compatModeCache.containsKey(packageName)
+//                && (result = compatModeCache.get(packageName)) != null) {
+//            return result;
+//        }
+//        result = isFileExists(getConfigPath("compatlist/" + packageName));
+//        compatModeCache.put(packageName, result);
+//        return result;
+//    }
 
-    private static boolean isFileExists(String path) {
-        return SELinuxHelper.getAppDataFileService().checkFileExists(path);
-    }
+//    private static boolean isFileExists(String path) {
+//        return SELinuxHelper.getAppDataFileService().checkFileExists(path);
+//    }
 
     public static native boolean isBlackWhiteListEnabled();
 
@@ -33,13 +33,13 @@ public class ConfigManager {
 
     public static native boolean isResourcesHookEnabled();
 
-    public static native boolean isDeoptBootImageEnabled();
+//    public static native boolean isDeoptBootImageEnabled();
 
     public static native boolean isSELinuxEnforced();
 
     public static native String getInstallerPackageName();
 
-    public static native String getXposedPropPath();
+//    public static native String getXposedPropPath();
 
     public static native String getLibSandHookName();
 

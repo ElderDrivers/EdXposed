@@ -53,7 +53,7 @@ namespace edxp {
 
         inline const auto &IsResourcesHookEnabled() const { return resources_hook_enabled_; }
 
-        inline const auto &IsDeoptBootImageEnabled() const { return deopt_boot_image_enabled_; }
+//        inline const auto &IsDeoptBootImageEnabled() const { return deopt_boot_image_enabled_; }
 
         inline const auto &IsNoModuleLogEnabled() const { return no_module_log_enabled_; }
 

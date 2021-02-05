@@ -157,7 +157,7 @@ namespace edxp {
             initialized_(initialized || InitConfigPath()),
             installer_pkg_name_(RetrieveInstallerPkgName()),
             white_list_enable_(path_exists(GetConfigPath("usewhitelist"))),
-            deopt_boot_image_enabled_(path_exists(GetConfigPath("deoptbootimage"))),
+//            deopt_boot_image_enabled_(path_exists(GetConfigPath("deoptbootimage"))),
             no_module_log_enabled_(path_exists(GetConfigPath("disable_modules_log"))),
             resources_hook_enabled_(path_exists(GetConfigPath("enable_resources"))),
             white_list_(GetAppList(GetConfigPath("whitelist/"))),
@@ -169,7 +169,7 @@ namespace edxp {
         LOGI("base config path: %s", base_config_path_.c_str());
         LOGI("  using installer package name: %s", installer_pkg_name_.c_str());
         LOGI("  using whitelist: %s", BoolToString(white_list_enable_));
-        LOGI("  deopt boot image: %s", BoolToString(deopt_boot_image_enabled_));
+//        LOGI("  deopt boot image: %s", BoolToString(deopt_boot_image_enabled_));
         LOGI("  no module log: %s", BoolToString(no_module_log_enabled_));
         LOGI("  resources hook: %s", BoolToString(resources_hook_enabled_));
         LOGI("  white list: \n %s", ([this]() {
