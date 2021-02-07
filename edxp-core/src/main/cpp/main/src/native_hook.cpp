@@ -7,7 +7,7 @@
 #include <dl_util.h>
 #include <art/runtime/jni_env_ext.h>
 #include <dobby.h>
-#include "android_restriction.h" // from Dobby
+#include "bionic_linker_restriction.h"
 #include "utils.h"
 #include "logging.h"
 #include "native_hook.h"
@@ -17,9 +17,9 @@
 #include "art/runtime/class_linker.h"
 #include "art/runtime/gc/heap.h"
 #include "art/runtime/hidden_api.h"
-#include "art/runtime/oat_file_manager.h"
-#include "art/runtime/jit/jit_code_cache.h"
 #include "art/runtime/art_method.h"
+#include "art/runtime/instrumentation.h"
+#include "art/runtime/reflection.h"
 
 std::vector<soinfo_t> linker_get_solist(); // Dobby but not in .h
 
@@ -82,8 +82,8 @@ namespace edxp {
         art::ClassLinker::Setup(art_handle, hook_func);
         art::mirror::Class::Setup(art_handle, hook_func);
         art::JNIEnvExt::Setup(art_handle, hook_func);
-//        art::oat_file_manager::DisableOnlyUseSystemOatFiles(art_handle, hook_func);
-        art::jit::HookJitCacheCode(art_handle, hook_func);
+        art::instrumentation::DisableUpdateHookedMethodsCode(art_handle, hook_func);
+        art::PermissiveAccessByReflection(art_handle, hook_func);
 
         art_hooks_installed = true;
         LOGI("ART hooks installed");
