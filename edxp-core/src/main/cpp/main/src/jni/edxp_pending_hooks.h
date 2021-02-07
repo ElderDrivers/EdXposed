@@ -13,4 +13,8 @@ namespace edxp {
 
     void recordHooked(void* art_method);
 
+    void DonePendingHook(void *clazz);
+
+    bool IsMethodPending(void* art_method);
+
 } // namespace edxp

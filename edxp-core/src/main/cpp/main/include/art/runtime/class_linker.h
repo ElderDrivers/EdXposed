@@ -34,6 +34,7 @@ namespace art {
                 LOGD("Pending hook for %p (%s)", clazz_ptr,
                      art::mirror::Class(clazz_ptr).GetDescriptor().c_str());
                 edxp::Context::GetInstance()->CallOnPostFixupStaticTrampolines(clazz_ptr);
+                edxp::DonePendingHook(class_def);
             }
         }
 
@@ -45,11 +46,12 @@ namespace art {
                 });
 
         CREATE_MEM_HOOK_STUB_ENTRIES(
-                "_ZN3art11ClassLinker22FixupStaticTrampolinesEPNS_6ThreadENS_6ObjPtrINS_6mirror5ClassEEE",
-                void, FixupStaticTrampolinesWithThread, (void * thiz,
-                void * thread, void * clazz_ptr), {
-                    backup(thiz, thread, clazz_ptr);
-                    MaybeDelayHook(clazz_ptr);
+                "_ZN3art11ClassLinker20MarkClassInitializedEPNS_6ThreadENS_6HandleINS_6mirror5ClassEEE",
+                void*, MarkClassInitialized, (void * thiz, void * self, uint32_t * clazz_ptr), {
+                    void *result = backup(thiz, self, clazz_ptr);
+                    auto ptr = reinterpret_cast<void *>(*clazz_ptr);
+                    MaybeDelayHook(ptr);
+                    return result;
                 });
 
         CREATE_MEM_FUNC_SYMBOL_ENTRY(void, MakeInitializedClassesVisiblyInitialized, void *thiz,
@@ -63,7 +65,7 @@ namespace art {
                 "_ZN3art11ClassLinker30ShouldUseInterpreterEntrypointEPNS_9ArtMethodEPKv",
                 bool, ShouldUseInterpreterEntrypoint, (void * art_method,
                         const void *quick_code), {
-                    if (quick_code != nullptr && UNLIKELY(edxp::isHooked(art_method))) {
+                    if (quick_code != nullptr && UNLIKELY(edxp::isHooked(art_method) || edxp::IsMethodPending(art_method))) {
                         return false;
                     }
                     return backup(art_method, quick_code);
@@ -126,9 +128,18 @@ namespace art {
             RETRIEVE_MEM_FUNC_SYMBOL(SetEntryPointsToInterpreter,
                                      "_ZNK3art11ClassLinker27SetEntryPointsToInterpreterEPNS_9ArtMethodE");
 
-            edxp::HookSyms(handle, hook_func, FixupStaticTrampolines,
-                           FixupStaticTrampolinesWithThread);
             edxp::HookSyms(handle, hook_func, ShouldUseInterpreterEntrypoint);
+
+            if (api_level >= __ANDROID_API_R__) {
+                // In android R, FixupStaticTrampolines won't be called unless it's marking it as
+                // visiblyInitialized.
+                // So we miss some calls between initialized and visiblyInitialized.
+                // Therefore we hook the new introduced MarkClassInitialized instead
+                // This only happens on non-x86 devices
+                edxp::HookSyms(handle, hook_func, MarkClassInitialized);
+            } else {
+                edxp::HookSyms(handle, hook_func, FixupStaticTrampolines);
+            }
 
             // MakeInitializedClassesVisiblyInitialized will cause deadlock
             // IsQuickToInterpreterBridge is inlined
