@@ -226,7 +226,6 @@ namespace edxp {
         while (std::getline(ifs, module)) {
             const auto &module_pkg_name = GetPackageNameFromBaseApkPath(module);
             auto &[module_path, scope] = modules_list[module_pkg_name];
-            scope.insert(module_pkg_name); // Always add module itself
             module_path.assign(std::move(module));
             const auto &module_scope_conf = GetConfigPath(module_pkg_name + ".conf");
             if (!path_exists<true>(module_scope_conf)) {
@@ -243,6 +242,8 @@ namespace edxp {
                 if (!app_pkg_name.empty())
                     scope.emplace(std::move(app_pkg_name));
             }
+            if (!scope.empty())
+                scope.insert(module_pkg_name); // Always add module itself
             LOGI("scope of %s is:\n %s", module_pkg_name.c_str(), ([&scope = scope]() {
                 std::ostringstream join;
                 std::copy(scope.begin(), scope.end(),
