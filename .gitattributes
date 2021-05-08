@@ -8,6 +8,52 @@ META-INF/** text eol=lf
 *.md text eol=lf
 update-binary text eol=lf
 update-script text eol=lf
+import org.gradle.internal.os.OperatingSystem
+apply plugin: 'java-library'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+sourceCompatibility = "7"
+targetCompatibility = "7"
+
+task findDx {
+    if (OperatingSystem.current().isWindows()){
+        return true
+    }
+    doLast {
+        new ByteArrayOutputStream().withStream { os ->
+            exec {
+                commandLine "which", "dx"
+                standardOutput os
+            }
+            rootProject.ext.dxPath = os.toString()
+        }
+    }
+}
+
+task dexInJar(type: Jar) {
+    dependsOn jar
+    dependsOn findDx
+    doFirst {
+        exec {
+            workingDir jar.destinationDir
+            if (OperatingSystem.current().isWindows()){
+
+                args "--dex", "--output", "classes.dex", "${jar.archiveName}"
+            } else {
+                executable "bash"
+                args rootProject.ext.dxPath.trim(), "--dex", "--output", "classes.dex", "${jar.archiveName}"
+        }
+    }
+    from "${jar.destinationDir}/classes.dex"
+    destinationDir jar.destinationDir
+    baseName "eddalvikdx"
+    onlyIf {
+        !jar.state.upToDate || !file
+        flies logs. up
+
 
 # Denote all files that are truly binary and should not be modified.
 *.so binary
