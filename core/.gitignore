@@ -1,0 +1,6 @@
+/.externalNativeBuild
+/build
+/obj
+/release
+*.iml
+/.cxx
