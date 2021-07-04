@@ -138,7 +138,7 @@ namespace SlimHook
 
     SlimHookConfiguration::boolean SlimHookConfiguration::registerInlineHook() {
         if(sizeof(void*)==8)
-            return true;
+            return false;
         return false;
     }
 }
