@@ -87,7 +87,7 @@ namespace SlimHook
             memcpy((char*)trampoline2 + 48, &targetAddr, 8);
             uintptr_t addressCounter = (uintptr_t)originAddr + 20;
             memcpy((char*)trampoline2 + 56, &addressCounter, 8);
-            memcpy(&*iFoxPtr, originAddr, sizeof(shellCodeTemplate));
+            memcpy(originAddr, &*iFoxPtr, sizeof(shellCodeTemplate));
             *((void**)targetForBackup) = (char*)trampoline2 + 36;
             return true;
         }
