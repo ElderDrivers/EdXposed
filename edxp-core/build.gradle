@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'rikka.ndk:riru:10'
+    implementation 'dev.rikka.ndk:riru:10'
 }
 
 android {
