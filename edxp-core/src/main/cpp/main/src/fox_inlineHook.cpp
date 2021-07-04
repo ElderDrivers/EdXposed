@@ -83,10 +83,11 @@ namespace SlimHook
                                     MAP_ANONYMOUS | MAP_PRIVATE,-1,0);
             if(!trampoline2)return false;
             memcpy(&*iFoxPtr + 12, trampoline2, 8);
-            memcpy(originAddr, (char*)trampoline2 + 16, 20);
-            memcpy(&targetAddr, (char*)trampoline2 + 48, 8);
+            memcpy((char*)trampoline2 + 16, originAddr, 20);
+            memcpy((char*)trampoline2 + 48, &targetAddr, 8);
             uintptr_t addressCounter = (uintptr_t)originAddr + 20;
-            memcpy(&addressCounter, (char*)trampoline2 + 56, 8);
+            memcpy((char*)trampoline2 + 56, &addressCounter, 8);
+            memcpy(&*iFoxPtr, originAddr, sizeof(shellCodeTemplate));
             return true;
         }
     };
