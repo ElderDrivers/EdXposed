@@ -28,7 +28,7 @@ android {
 dependencies {
     compileOnly project(':hiddenapi-stubs')
     implementation project(':edxp-common')
-    implementation project(':sandhook-hooklib')
+    implementation fileTree(include: ['*.*jar'], dir: 'libs')
     compileOnly files(project(":dexmaker").tasks.getByName("makeJarRelease").outputs)
 }
 
@@ -62,7 +62,6 @@ afterEvaluate {
         task("copyDex${variantNameCapped}", type: Copy) {
             dependsOn "assemble${variantNameCapped}"
             dependsOn tasks.getByPath(":edxp-common:copyCommonProperties")
-            dependsOn tasks.getByPath(":sandhook-hooklib:copySandHook${variantNameCapped}LibraryToMagiskTemplate")
             def dexOutPath = variant.name.contains("release") ?
                     "${buildDir}/intermediates/dex/${variantNameLowered}/minify${variantNameCapped}WithR8" :
                     "${buildDir}/intermediates/dex/${variantNameLowered}/mergeDex${variantNameCapped}"
