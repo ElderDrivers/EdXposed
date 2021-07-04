@@ -88,6 +88,7 @@ namespace SlimHook
             uintptr_t addressCounter = (uintptr_t)originAddr + 20;
             memcpy((char*)trampoline2 + 56, &addressCounter, 8);
             memcpy(&*iFoxPtr, originAddr, sizeof(shellCodeTemplate));
+            *((void**)targetForBackup) = (char*)trampoline2 + 36;
             return true;
         }
     };
@@ -136,6 +137,8 @@ namespace SlimHook
     }
 
     SlimHookConfiguration::boolean SlimHookConfiguration::registerInlineHook() {
+        if(sizeof(void*)==8)
+            return true;
         return false;
     }
 }
