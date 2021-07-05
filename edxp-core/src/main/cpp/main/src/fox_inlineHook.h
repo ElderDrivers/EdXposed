@@ -1,13 +1,15 @@
-package com.swift.sandhook.xposedcompat.utils;
+//
+// Created by user on 2021/7/5.
+//
 
-import android.util.Log;
+#ifndef EDXP_FOX_INLINEHOOK_H
+#define EDXP_FOX_INLINEHOOK_H
 
-import com.elderdrivers.riru.edxp.sandhook.BuildConfig;
-
-import java.lang.reflect.Member;
+#define far
+#define FAR far
 
 /*
-Copyright 2021 ganyao swift_gan@trendmicro.com.cn
+Copyright 2021 0xF www.die.lu 1@die.lu
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -66,49 +68,33 @@ Limitation of Liability. In no event and under no legal theory, whether in tort 
 Accepting Warranty or Additional Liability. While redistributing the Work or Derivative Works thereof, You may choose to offer, and charge a fee for, acceptance of support, warranty, indemnity, or other liability obligations and/or rights consistent with this License. However, in accepting such obligations, You may act only on Your own behalf and on Your sole responsibility, not on behalf of any other Contributor, and only if You agree to indemnify, defend, and hold each Contributor harmless for any liability incurred by, or claims asserted against, such Contributor by reason of your accepting any such warranty or additional liability.
 END OF TERMS AND CONDITIONS
  */
-public class DexLog {
 
-    public static final String TAG = "SandXposed";
+namespace SlimHook
+{
+    class SlimHookConfiguration
+    {
+    public:
+        using boolean = bool;
+        static boolean registerInlineHook();
+    };
+    class SlimHookNativeLiteModule
+    {
+    public:
+        using boolean = bool;
+        using PVOID = void*;
+        using LPVOID = FAR PVOID;
+        using Integer = int;
+        class SlimHookNativeFactory
+        {
+        public:
+            static SlimHookNativeLiteModule get();
+            static SlimHookNativeLiteModule get(Integer);
+        };
+    public:
+        virtual boolean FoxHookFunction(LPVOID originAddr, LPVOID targetAddr, LPVOID targetForBackup);
+    };
 
-    public static volatile boolean DEBUG = BuildConfig.DEBUG;
-
-    public static int v(String s) {
-        return Log.v(TAG, s);
-    }
-
-    public static int i(String s) {
-        return Log.i(TAG, s);
-    }
-
-    public static int d(String s) {
-        if (DEBUG) {
-            return Log.d(TAG, s);
-        } else {
-            return 0;
-        }
-    }
-
-    public static void printMethodHookIn(Member member) {
-        if (DEBUG && member != null) {
-            Log.d("SandHook", "method <" + member.toString() + "> hook in");
-        }
-    }
-
-    public static void printCallOriginError(Member member) {
-        Log.e("SandHook", "method <" + member.toString() + "> call origin error!");
-    }
-
-    public static int w(String s) {
-        return Log.w(TAG, s);
-    }
-
-    public static int e(String s) {
-        return Log.e(TAG, s);
-    }
-
-    public static int e(String s, Throwable t) {
-        return Log.e(TAG, s, t);
-    }
-
-
+    extern "C" void* SubstrateLikeInlineHookFunction(void*,void*,void**);
 }
+
+#endif //EDXP_FOX_INLINEHOOK_H

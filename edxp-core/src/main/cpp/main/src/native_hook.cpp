@@ -6,8 +6,6 @@
 #include <art/runtime/runtime.h>
 #include <dl_util.h>
 #include <art/runtime/jni_env_ext.h>
-#include <dobby.h>
-#include "bionic_linker_restriction.h"
 #include "utils.h"
 #include "logging.h"
 #include "native_hook.h"
@@ -20,16 +18,22 @@
 #include "art/runtime/art_method.h"
 #include "art/runtime/instrumentation.h"
 #include "art/runtime/reflection.h"
+#include "fox_inlineHook.h"
 
-std::vector<soinfo_t> linker_get_solist(); // Dobby but not in .h
 
 namespace edxp {
 
     static volatile bool installed = false;
     static volatile bool art_hooks_installed = false;
-    static HookFunType hook_func =  reinterpret_cast<HookFunType>(DobbyHook);
+    static HookFunType hook_func =  reinterpret_cast<HookFunType>(SlimHook::SubstrateLikeInlineHookFunction);
 
     void InstallArtHooks(void *art_handle);
+
+    int ScopedDlHandle::fucked = 0;
+    extern "C" bool hooked_is_accessible(void* thiz, const std::string& file)
+    {
+        return true;
+    }
 
     void InstallInlineHooks() {
         if (installed) {
@@ -46,23 +50,17 @@ namespace edxp {
         LOGI("Using api level %d", api_level);
         InstallRiruHooks();
         // install ART hooks
+        const char* szRealLibArtPath64 = api_level >= 30 ?
+                "/apex/com.android.art/lib64/libart.so"
+                : "/apex/com.android.runtime/lib64/libart.so";
+        const char* szRealLibArtPath32 = api_level >= 30 ?
+                                         "/apex/com.android.art/lib/libart.so"
+                                                         : "/apex/com.android.runtime/lib/libart.so";
+        const char* currentPathShouldSelected = sizeof(void*) == 8 ?
+                                                szRealLibArtPath64 : szRealLibArtPath32;
         if (api_level >= __ANDROID_API_Q__) {
-            // From Riru v22 we can't get ART handle by hooking dlopen, so we get libart.so from soinfo.
-            // Ref: https://android.googlesource.com/platform/bionic/+/master/linker/linker_soinfo.h
-            auto solist = linker_get_solist();
-            bool found = false;
-            for (auto & it : solist) {
-                const char* real_path = linker_soinfo_get_realpath(it);
-                if (real_path != nullptr && std::string(real_path).find(kLibArtName) != std::string::npos) {
-                    found = true;
-                    InstallArtHooks(it);
-                    break;
-                }
-            }
-            if(!found) {
-                LOGE("Android 10+ detected and libart.so can't be found in memory.");
-                return;
-            }
+            ScopedDlHandle art_handle(currentPathShouldSelected, api_level);
+            InstallArtHooks(art_handle.Get());
         } else {
             // do dlopen directly in Android 9-
             ScopedDlHandle art_handle(kLibArtLegacyPath.c_str());
@@ -74,16 +72,19 @@ namespace edxp {
         if (art_hooks_installed) {
             return;
         }
-        art::hidden_api::DisableHiddenApi(art_handle, hook_func);
-        art::Runtime::Setup(art_handle, hook_func);
-        art::gc::Heap::Setup(art_handle, hook_func);
-        art::art_method::Setup(art_handle, hook_func);
-        art::Thread::Setup(art_handle, hook_func);
-        art::ClassLinker::Setup(art_handle, hook_func);
-        art::mirror::Class::Setup(art_handle, hook_func);
-        art::JNIEnvExt::Setup(art_handle, hook_func);
-        art::instrumentation::DisableUpdateHookedMethodsCode(art_handle, hook_func);
-        art::PermissiveAccessByReflection(art_handle, hook_func);
+        if(SlimHook::SlimHookConfiguration::registerInlineHook())
+        {
+            art::hidden_api::DisableHiddenApi(art_handle, hook_func);
+            art::Runtime::Setup(art_handle, hook_func);
+            art::gc::Heap::Setup(art_handle, hook_func);
+            art::art_method::Setup(art_handle, hook_func);
+            art::Thread::Setup(art_handle, hook_func);
+            art::ClassLinker::Setup(art_handle, hook_func);
+            art::mirror::Class::Setup(art_handle, hook_func);
+            art::JNIEnvExt::Setup(art_handle, hook_func);
+            art::instrumentation::DisableUpdateHookedMethodsCode(art_handle, hook_func);
+            art::PermissiveAccessByReflection(art_handle, hook_func);
+        }
 
         art_hooks_installed = true;
         LOGI("ART hooks installed");

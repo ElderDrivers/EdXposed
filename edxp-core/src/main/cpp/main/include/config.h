@@ -36,12 +36,20 @@ inline constexpr bool is64 = Is64();
 
     static const auto kLibArtName = "libart.so"s;
     static const auto kLibFwName = "libandroidfw.so"s;
+    static const auto kLibSandHookNativeName = "libsandhook-native.so"s;
 
     static const auto kLibBasePath =
             LP_SELECT("/system/lib/"s,
                       "/system/lib64/"s);
+    static const auto kLibBasePathArt11 =
+            LP_SELECT("/apex/com.android.art/lib/"s,
+                      "/apex/com.android.art/lib64/"s);
+    static const auto kLibBasePathArt10 =
+            LP_SELECT("/apex/com.android.runtime/lib/"s,
+                      "/apex/com.android.runtime/lib64/"s);
     static const auto kLibArtLegacyPath = kLibBasePath + kLibArtName;
     static const auto kLibFwPath = kLibBasePath + kLibFwName;
+    static const auto kLibSandHookNativePath = kLibBasePath + kLibSandHookNativeName;
 
     inline constexpr const char *const BoolToString(bool b) {
         return b ? "true" : "false";

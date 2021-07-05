@@ -25,10 +25,20 @@ android {
     ndkVersion androidCompileNdkVersion
 }
 
+/*
+ * SandHook and SandHook-Native from JiNan LuoHe Tech. licensed to ElderDrivers's EdXposed.
+ * NOTICE:
+ * SandHook and SandHook-Native
+ *  currently a business project and license under Apache 2.0 as JiNan LuoHe Tech.'s define.
+ * SlimHook and SlimHook-Native from 0xF licensed to ElderDrivers's EdXposed.
+ * SlimHook and SlimHook-Native license under Apache 2.0.
+ */
+
 dependencies {
     compileOnly project(':hiddenapi-stubs')
     implementation project(':edxp-common')
-    implementation project(':sandhook-hooklib')
+    implementation 'com.swift.sandhook:nativehook:4.2.1'
+    implementation fileTree(include: ['*.*jar'], dir: 'libs')
     compileOnly files(project(":dexmaker").tasks.getByName("makeJarRelease").outputs)
 }
 
@@ -62,7 +72,6 @@ afterEvaluate {
         task("copyDex${variantNameCapped}", type: Copy) {
             dependsOn "assemble${variantNameCapped}"
             dependsOn tasks.getByPath(":edxp-common:copyCommonProperties")
-            dependsOn tasks.getByPath(":sandhook-hooklib:copySandHook${variantNameCapped}LibraryToMagiskTemplate")
             def dexOutPath = variant.name.contains("release") ?
                     "${buildDir}/intermediates/dex/${variantNameLowered}/minify${variantNameCapped}WithR8" :
                     "${buildDir}/intermediates/dex/${variantNameLowered}/mergeDex${variantNameCapped}"
