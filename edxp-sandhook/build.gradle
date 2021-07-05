@@ -28,6 +28,7 @@ android {
 dependencies {
     compileOnly project(':hiddenapi-stubs')
     implementation project(':edxp-common')
+    implementation 'com.swift.sandhook:nativehook:4.2.1'
     implementation fileTree(include: ['*.*jar'], dir: 'libs')
     compileOnly files(project(":dexmaker").tasks.getByName("makeJarRelease").outputs)
 }

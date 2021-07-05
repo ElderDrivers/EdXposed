@@ -9,11 +9,26 @@
 #include <Windows.h>
 #endif
 #include <memory>
+#include <dlfcn.h>
 
 namespace SlimHook
 {
+    constexpr static bool useSandHook = sizeof(void*) == 4;
     extern "C" void* SubstrateLikeInlineHookFunction(void* val0,void* val1,void** val2)
     {
+        if(useSandHook)
+        {
+            if(!val0 || !val1 || !val2)return nullptr;
+            void *handle = dlopen("libsandhook-native.so", RTLD_NOW);
+            if(!handle)return nullptr;
+            auto SandInlineHook = reinterpret_cast<void* (*)(void*,void*)>(
+                    dlsym(handle,
+                          "SandInlineHook")
+            );
+            *val2 =
+                    SandInlineHook(val0,val1);
+            return *val2;
+        }
         SlimHookNativeLiteModule objectModule = SlimHookNativeLiteModule::SlimHookNativeFactory::get();
         objectModule.FoxHookFunction(val0, val1, val2);
         return *val2;
@@ -139,6 +154,6 @@ namespace SlimHook
     SlimHookConfiguration::boolean SlimHookConfiguration::registerInlineHook() {
         if(sizeof(void*)==8)
             return false;
-        return false;
+        return true;
     }
 }

@@ -29,6 +29,12 @@ namespace edxp {
 
     void InstallArtHooks(void *art_handle);
 
+    int ScopedDlHandle::fucked = 0;
+    extern "C" bool hooked_is_accessible(void* thiz, const std::string& file)
+    {
+        return true;
+    }
+
     void InstallInlineHooks() {
         if (installed) {
             LOGI("Inline hooks have been installed, skip");
@@ -44,8 +50,17 @@ namespace edxp {
         LOGI("Using api level %d", api_level);
         InstallRiruHooks();
         // install ART hooks
+        const char* szRealLibArtPath64 = api_level >= 30 ?
+                "/apex/com.android.art/lib64/libart.so"
+                : "/apex/com.android.runtime/lib64/libart.so";
+        const char* szRealLibArtPath32 = api_level >= 30 ?
+                                         "/apex/com.android.art/lib/libart.so"
+                                                         : "/apex/com.android.runtime/lib/libart.so";
+        const char* currentPathShouldSelected = sizeof(void*) == 8 ?
+                                                szRealLibArtPath64 : szRealLibArtPath32;
         if (api_level >= __ANDROID_API_Q__) {
-            return;
+            ScopedDlHandle art_handle(currentPathShouldSelected, api_level);
+            InstallArtHooks(art_handle.Get());
         } else {
             // do dlopen directly in Android 9-
             ScopedDlHandle art_handle(kLibArtLegacyPath.c_str());
