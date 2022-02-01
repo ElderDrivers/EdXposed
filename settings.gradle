@@ -1,1 +1,0 @@
-include ':edxp-core', ':xposed-bridge', ':hiddenapi-stubs', ':dexmaker', ':dalvikdx', ':edxp-common', ':edxp-yahfa', ':edxp-sandhook', ':edxp-service', ':sandhook-hooklib', ':sandhook-annotation'
